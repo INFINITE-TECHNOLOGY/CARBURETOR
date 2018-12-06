@@ -1,8 +1,6 @@
 {
-  "compile": {
-    "defaultLevel": "EXPRESSION"
+  "levelsByImplementingClass": {
+
   },
-  "runtime": {
-    "mode": "SEQUENTIAL"
-  }
+  "defaultLevel": "EXPRESSION"
 }

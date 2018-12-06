@@ -2,6 +2,7 @@ package io.infinite.carburetor
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.inspect.swingui.AstNodeToScriptVisitor
+import groovy.transform.CompileStatic
 import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 import io.infinite.carburetor.ast.MetaDataExpression
@@ -119,7 +120,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         return closureExpression
     }
 
-    private static MethodCallExpression wrapExpressionIntoMethodCallExpression(Expression iExpression, iSourceNodeName) {
+    private MethodCallExpression wrapExpressionIntoMethodCallExpression(Expression iExpression, iSourceNodeName) {
         ClosureExpression closureExpression = wrapStatementIntoClosure(GeneralUtils.returnS(iExpression))
         closureExpression.setVariableScope(new VariableScope())
         MethodCallExpression methodCallExpression = GeneralUtils.callX(
@@ -238,7 +239,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         }
     }
 
-    private Statement createThrowStatement() {
+    Statement createThrowStatement() {
         ThrowStatement throwStatement = GeneralUtils.throwS(GeneralUtils.varX("automaticException"))
         throwStatement.setSourcePosition(annotationNode)
         return throwStatement
@@ -310,7 +311,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         BlockStatement blockStatement = GeneralUtils.block(new VariableScope())
         blockStatement.addStatement(new ExpressionStatement(GeneralUtils.callX(
                 GeneralUtils.varX(getEngineVarName()),
-                "expressionExecutionOpen",
+                "statementExecutionOpen",
                 GeneralUtils.args(
                         GeneralUtils.ctorX(
                                 ClassHelper.make(MetaDataStatement.class),
@@ -340,13 +341,18 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                 GeneralUtils.varX(getEngineVarName()),
                 "expressionExecutionOpen",
                 GeneralUtils.args(
-                        GeneralUtils.constX(iExpression.getClass().getSimpleName()),
-                        GeneralUtils.constX(iExpression.origCodeString),
-                        GeneralUtils.constX(iExpression.getColumnNumber()),
-                        GeneralUtils.constX(iExpression.getLastColumnNumber()),
-                        GeneralUtils.constX(iExpression.getLineNumber()),
-                        GeneralUtils.constX(iExpression.getLastLineNumber()),
-                        GeneralUtils.constX(iSourceNodeName)
+                        GeneralUtils.ctorX(
+                                ClassHelper.make(MetaDataExpression.class),
+                                GeneralUtils.args(
+                                        GeneralUtils.constX(iExpression.getClass().getSimpleName()),
+                                        GeneralUtils.constX(iExpression.origCodeString),
+                                        GeneralUtils.constX(iExpression.getColumnNumber()),
+                                        GeneralUtils.constX(iExpression.getLastColumnNumber()),
+                                        GeneralUtils.constX(iExpression.getLineNumber()),
+                                        GeneralUtils.constX(iExpression.getLastLineNumber()),
+                                        GeneralUtils.constX(iSourceNodeName)
+                                )
+                        )
                 )
         )
         MethodCallExpression expressionExecutionCloseMethodCallExpression = GeneralUtils.callX(

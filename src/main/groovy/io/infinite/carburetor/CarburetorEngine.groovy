@@ -16,8 +16,6 @@ abstract class CarburetorEngine {
         addShutdownHook getShutdownHook()
     }
 
-    abstract static CarburetorEngine getInstance()
-
     abstract void expressionExecutionOpen(MetaDataExpression metaDataExpression)
 
     abstract handleExpressionEvaluationResult(Object expressionEvaluationResult)

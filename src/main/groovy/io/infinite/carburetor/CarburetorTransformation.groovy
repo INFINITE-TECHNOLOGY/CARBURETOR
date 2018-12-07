@@ -9,6 +9,7 @@ import io.infinite.carburetor.ast.MetaDataExpression
 import io.infinite.carburetor.ast.MetaDataMethodNode
 import io.infinite.carburetor.ast.MetaDataStatement
 import org.apache.commons.lang3.exception.ExceptionUtils
+import org.codehaus.groovy.GroovyBugError
 import org.codehaus.groovy.ast.*
 import org.codehaus.groovy.ast.builder.AstBuilder
 import org.codehaus.groovy.ast.expr.*

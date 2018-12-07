@@ -14,7 +14,7 @@ class MetaDataMethodNode extends MetaDataASTNode {
             Integer lineNumber,
             Integer lastLineNumber
     ) {
-        this.className = methodClassName + "." + methodClassPackageName
+        this.className = methodClassPackageName + "." + methodClassName
         this.methodName = methodName
         this.columnNumber = columnNumber
         this.lastColumnNumber = lastColumnNumber

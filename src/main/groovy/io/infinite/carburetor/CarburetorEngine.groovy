@@ -10,12 +10,6 @@ import java.lang.reflect.Field
 @Slf4j
 abstract class CarburetorEngine {
 
-    abstract Closure getShutdownHook()
-
-    CarburetorEngine() {
-        addShutdownHook getShutdownHook()
-    }
-
     abstract void expressionExecutionOpen(MetaDataExpression metaDataExpression)
 
     abstract handleExpressionEvaluationResult(Object expressionEvaluationResult)

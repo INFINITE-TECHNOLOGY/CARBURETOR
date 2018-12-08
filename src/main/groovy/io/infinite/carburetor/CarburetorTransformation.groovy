@@ -109,7 +109,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         }
     }
 
-    private static ClosureExpression wrapStatementIntoClosure(Statement statement) {
+    ClosureExpression wrapStatementIntoClosure(Statement statement) {
         ClosureExpression closureExpression = GeneralUtils.closureX(
                 GeneralUtils.params(
                         GeneralUtils.param(ClassHelper.make(Object.class), "itVariableReplacement" + uniqueClosureParamCounter)
@@ -121,8 +121,8 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         return closureExpression
     }
 
-    private MethodCallExpression wrapExpressionIntoMethodCallExpression(Expression iExpression, iSourceNodeName) {
-        ClosureExpression closureExpression = wrapStatementIntoClosure(GeneralUtils.returnS(iExpression))
+    MethodCallExpression wrapExpressionIntoMethodCallExpression(Expression expression, sourceNodeName) {
+        ClosureExpression closureExpression = wrapStatementIntoClosure(GeneralUtils.returnS(expression))
         closureExpression.setVariableScope(new VariableScope())
         MethodCallExpression methodCallExpression = GeneralUtils.callX(
                 GeneralUtils.varX(getEngineVarName()),
@@ -131,21 +131,21 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                         GeneralUtils.ctorX(
                                 ClassHelper.make(MetaDataExpression.class),
                                 GeneralUtils.args(
-                                        GeneralUtils.constX(iExpression.getClass().getSimpleName()),
-                                        GeneralUtils.constX(iExpression.origCodeString),
-                                        GeneralUtils.constX(iExpression.getColumnNumber()),
-                                        GeneralUtils.constX(iExpression.getLastColumnNumber()),
-                                        GeneralUtils.constX(iExpression.getLineNumber()),
-                                        GeneralUtils.constX(iExpression.getLastLineNumber()),
-                                        GeneralUtils.constX(iSourceNodeName)
+                                        GeneralUtils.constX(expression.getClass().getSimpleName()),
+                                        GeneralUtils.constX(expression.origCodeString),
+                                        GeneralUtils.constX(expression.getColumnNumber()),
+                                        GeneralUtils.constX(expression.getLastColumnNumber()),
+                                        GeneralUtils.constX(expression.getLineNumber()),
+                                        GeneralUtils.constX(expression.getLastLineNumber()),
+                                        GeneralUtils.constX(sourceNodeName)
                                 )
                         ),
                         closureExpression,
                         GeneralUtils.varX("automaticThis")
                 )
         )
-        methodCallExpression.copyNodeMetaData(iExpression)
-        methodCallExpression.setSourcePosition(iExpression)
+        methodCallExpression.copyNodeMetaData(expression)
+        methodCallExpression.setSourcePosition(expression)
         methodCallExpression.isTransformed = true
         return methodCallExpression
     }
@@ -271,7 +271,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         }
     }
 
-    private BlockStatement transformControlStatement(Statement iStatement, String iSourceNodeName) {
+    private BlockStatement transformControlStatement(Statement statement, String sourceNodeName) {
         BlockStatement blockStatement = GeneralUtils.block(new VariableScope())
         MethodCallExpression methodCallExpression = GeneralUtils.callX(
                 GeneralUtils.varX(getEngineVarName()),
@@ -280,34 +280,34 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                         GeneralUtils.ctorX(
                                 ClassHelper.make(MetaDataStatement.class),
                                 GeneralUtils.args(
-                                        GeneralUtils.constX(iStatement.getClass().getSimpleName()),
-                                        GeneralUtils.constX(iStatement.origCodeString),
-                                        GeneralUtils.constX(iStatement.getColumnNumber()),
-                                        GeneralUtils.constX(iStatement.getLastColumnNumber()),
-                                        GeneralUtils.constX(iStatement.getLineNumber()),
-                                        GeneralUtils.constX(iStatement.getLastLineNumber()),
-                                        GeneralUtils.constX(iSourceNodeName)
+                                        GeneralUtils.constX(statement.getClass().getSimpleName()),
+                                        GeneralUtils.constX(statement.origCodeString),
+                                        GeneralUtils.constX(statement.getColumnNumber()),
+                                        GeneralUtils.constX(statement.getLastColumnNumber()),
+                                        GeneralUtils.constX(statement.getLineNumber()),
+                                        GeneralUtils.constX(statement.getLastLineNumber()),
+                                        GeneralUtils.constX(sourceNodeName)
                                 )
                         )
                 )
         )
         blockStatement.addStatement(new ExpressionStatement(methodCallExpression))
-        blockStatement.addStatement(iStatement)
-        blockStatement.copyNodeMetaData(iStatement)
-        blockStatement.setSourcePosition(iStatement)
+        blockStatement.addStatement(statement)
+        blockStatement.copyNodeMetaData(statement)
+        blockStatement.setSourcePosition(statement)
         blockStatement.isTransformed = true
         return blockStatement
     }
 
-    Statement transformStatement(Statement iStatement, String iSourceNodeName) {
-        if (iStatement == null || iStatement instanceof EmptyStatement || iStatement.isTransformed == true) {
-            return iStatement
+    Statement transformStatement(Statement statement, String sourceNodeName) {
+        if (statement == null || statement instanceof EmptyStatement || statement.isTransformed == true) {
+            return statement
         }
-        if (carburetorLevel.value() < CarburetorLevel.STATEMENT.value() || iStatement instanceof BlockStatement || iStatement instanceof ExpressionStatement) {
-            return iStatement
+        if (carburetorLevel.value() < CarburetorLevel.STATEMENT.value() || statement instanceof BlockStatement || statement instanceof ExpressionStatement) {
+            return statement
         }
-        if (iStatement instanceof ReturnStatement || iStatement instanceof ContinueStatement || iStatement instanceof BreakStatement || iStatement instanceof ThrowStatement) {
-            return transformControlStatement(iStatement, iSourceNodeName)
+        if (statement instanceof ReturnStatement || statement instanceof ContinueStatement || statement instanceof BreakStatement || statement instanceof ThrowStatement) {
+            return transformControlStatement(statement, sourceNodeName)
         }
         BlockStatement blockStatement = GeneralUtils.block(new VariableScope())
         blockStatement.addStatement(new ExpressionStatement(GeneralUtils.callX(
@@ -317,26 +317,26 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                         GeneralUtils.ctorX(
                                 ClassHelper.make(MetaDataStatement.class),
                                 GeneralUtils.args(
-                                        GeneralUtils.constX(iStatement.getClass().getSimpleName()),
-                                        GeneralUtils.constX(iStatement.origCodeString),
-                                        GeneralUtils.constX(iStatement.getColumnNumber()),
-                                        GeneralUtils.constX(iStatement.getLastColumnNumber()),
-                                        GeneralUtils.constX(iStatement.getLineNumber()),
-                                        GeneralUtils.constX(iStatement.getLastLineNumber()),
-                                        GeneralUtils.constX(iSourceNodeName)
+                                        GeneralUtils.constX(statement.getClass().getSimpleName()),
+                                        GeneralUtils.constX(statement.origCodeString),
+                                        GeneralUtils.constX(statement.getColumnNumber()),
+                                        GeneralUtils.constX(statement.getLastColumnNumber()),
+                                        GeneralUtils.constX(statement.getLineNumber()),
+                                        GeneralUtils.constX(statement.getLastLineNumber()),
+                                        GeneralUtils.constX(sourceNodeName)
                                 )
                         )
                 )
         )))
-        blockStatement.addStatement(iStatement)
+        blockStatement.addStatement(statement)
         blockStatement.addStatement(text2statement("${getEngineVarName()}.executionClose()"))
-        blockStatement.copyNodeMetaData(iStatement)
-        blockStatement.setSourcePosition(iStatement)
+        blockStatement.copyNodeMetaData(statement)
+        blockStatement.setSourcePosition(statement)
         blockStatement.isTransformed = true
         return blockStatement
     }
 
-    private ListOfExpressionsExpression transformDeclarationExpression(DeclarationExpression iExpression, String iSourceNodeName) {
+    private ListOfExpressionsExpression transformDeclarationExpression(DeclarationExpression declarationExpression, String sourceNodeName) {
         ListOfExpressionsExpression listOfExpressionsExpression = new ListOfExpressionsExpression()
         MethodCallExpression expressionExecutionOpenMethodCallExpression = GeneralUtils.callX(
                 GeneralUtils.varX(getEngineVarName()),
@@ -345,13 +345,13 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                         GeneralUtils.ctorX(
                                 ClassHelper.make(MetaDataExpression.class),
                                 GeneralUtils.args(
-                                        GeneralUtils.constX(iExpression.getClass().getSimpleName()),
-                                        GeneralUtils.constX(iExpression.origCodeString),
-                                        GeneralUtils.constX(iExpression.getColumnNumber()),
-                                        GeneralUtils.constX(iExpression.getLastColumnNumber()),
-                                        GeneralUtils.constX(iExpression.getLineNumber()),
-                                        GeneralUtils.constX(iExpression.getLastLineNumber()),
-                                        GeneralUtils.constX(iSourceNodeName)
+                                        GeneralUtils.constX(declarationExpression.getClass().getSimpleName()),
+                                        GeneralUtils.constX(declarationExpression.origCodeString),
+                                        GeneralUtils.constX(declarationExpression.getColumnNumber()),
+                                        GeneralUtils.constX(declarationExpression.getLastColumnNumber()),
+                                        GeneralUtils.constX(declarationExpression.getLineNumber()),
+                                        GeneralUtils.constX(declarationExpression.getLastLineNumber()),
+                                        GeneralUtils.constX(sourceNodeName)
                                 )
                         )
                 )
@@ -361,80 +361,81 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                 "executionClose"
         )
         listOfExpressionsExpression.addExpression(expressionExecutionOpenMethodCallExpression)
-        listOfExpressionsExpression.addExpression(iExpression)
+        listOfExpressionsExpression.addExpression(declarationExpression)
         listOfExpressionsExpression.addExpression(expressionExecutionCloseMethodCallExpression)
-        listOfExpressionsExpression.copyNodeMetaData(iExpression)
-        listOfExpressionsExpression.setSourcePosition(iExpression)
+        listOfExpressionsExpression.copyNodeMetaData(declarationExpression)
+        listOfExpressionsExpression.setSourcePosition(declarationExpression)
         listOfExpressionsExpression.isTransformed = true
         return listOfExpressionsExpression
     }
 
-    Expression transformExpression(Expression iExpression, String iSourceNodeName) {
-        Expression transformedExpression = iExpression
-        if (iExpression == null ||
+    Expression transformExpression(Expression expression, String sourceNodeName) {
+        Expression transformedExpression = expression
+        if (expression == null ||
                 carburetorLevel.value() < CarburetorLevel.EXPRESSION.value() ||
-                iExpression instanceof EmptyExpression ||
-                iExpression instanceof MapEntryExpression ||
-                iExpression instanceof ArgumentListExpression ||
-                (iExpression instanceof ConstructorCallExpression && iExpression.isSpecialCall()) ||
-                (iExpression instanceof VariableExpression && iExpression.isSuperExpression()) ||
-                iExpression.isTransformed == true
+                expression instanceof EmptyExpression ||
+                expression instanceof MapEntryExpression ||
+                expression instanceof ArgumentListExpression ||
+                (expression instanceof ConstructorCallExpression && expression.isSpecialCall()) ||
+                (expression instanceof VariableExpression && expression.isSuperExpression()) ||
+                expression.isTransformed == true
         ) {
-            return iExpression
-        } else if (iExpression.getClass() == DeclarationExpression.class) {
-            return transformDeclarationExpression(iExpression as DeclarationExpression, iSourceNodeName)
-        } else if (iExpression.getClass() == BitwiseNegationExpression.class) {
-            transformedExpression = new BitwiseNegationExpression(transformExpression(iExpression.getExpression() as Expression, "BitwiseNegationExpression:expression"))
-        } else if (iExpression.getClass() == NotExpression.class) {
-            transformedExpression = new NotExpression(transformExpression(iExpression.getExpression() as Expression, "NotExpression:expression"))
-        } else if (iExpression.getClass() == BooleanExpression.class) {
-            transformedExpression = new BooleanExpression(transformExpression(iExpression.getExpression() as Expression, "BooleanExpression:expression"))
-        } else if (iExpression.getClass() == CastExpression.class) {
-            transformedExpression = new CastExpression(iExpression.getType(), transformExpression(iExpression.getExpression() as Expression, "ClassExpression:expression"))
-        } else if (iExpression.getClass() == ConstructorCallExpression.class) {
-            transformedExpression = new ConstructorCallExpression(iExpression.getType(), transformExpression(iExpression.getArguments() as Expression, "ConstructorCallExpression:arguments"))
-        } else if (iExpression.getClass() == MethodPointerExpression.class) {
-            transformedExpression = new MethodPointerExpression(transformExpression(iExpression.getExpression() as Expression, "MethodPointerExpression:expression"),
-                    transformExpression(iExpression.getMethodName() as Expression, "MethodPointerExpression:methodName"))
-        } else if (iExpression.getClass() == AttributeExpression.class) {
-            transformedExpression = new AttributeExpression(transformExpression(iExpression.getObjectExpression() as Expression, "AttributeExpression:objectExpression"),
-                    transformExpression(iExpression.getProperty() as Expression, "PropertyExpression:property"))
-        } else if (iExpression.getClass() == PropertyExpression.class) {
-            if (!(iExpression.getObjectExpression() instanceof ClassExpression && iExpression.getProperty() instanceof ConstantExpression && iExpression.getProperty().getValue().toString() == "this")) {
-                transformedExpression = new PropertyExpression(transformExpression(iExpression.getObjectExpression() as Expression, "PropertyExpression:objectExpression"),
-                        transformExpression(iExpression.getProperty() as Expression, "PropertyExpression:property"))
+            expression?.isTransformed == true
+            return expression
+        } else if (expression.getClass() == DeclarationExpression.class) {
+            return transformDeclarationExpression(expression as DeclarationExpression, sourceNodeName)
+        } else if (expression.getClass() == BitwiseNegationExpression.class) {
+            transformedExpression = new BitwiseNegationExpression(transformExpression(expression.getExpression() as Expression, "BitwiseNegationExpression:expression"))
+        } else if (expression.getClass() == NotExpression.class) {
+            transformedExpression = new NotExpression(transformExpression(expression.getExpression() as Expression, "NotExpression:expression"))
+        } else if (expression.getClass() == BooleanExpression.class) {
+            transformedExpression = new BooleanExpression(transformExpression(expression.getExpression() as Expression, "BooleanExpression:expression"))
+        } else if (expression.getClass() == CastExpression.class) {
+            transformedExpression = new CastExpression(expression.getType(), transformExpression(expression.getExpression() as Expression, "ClassExpression:expression"))
+        } else if (expression.getClass() == ConstructorCallExpression.class) {
+            transformedExpression = new ConstructorCallExpression(expression.getType(), transformExpression(expression.getArguments() as Expression, "ConstructorCallExpression:arguments"))
+        } else if (expression.getClass() == MethodPointerExpression.class) {
+            transformedExpression = new MethodPointerExpression(transformExpression(expression.getExpression() as Expression, "MethodPointerExpression:expression"),
+                    transformExpression(expression.getMethodName() as Expression, "MethodPointerExpression:methodName"))
+        } else if (expression.getClass() == AttributeExpression.class) {
+            transformedExpression = new AttributeExpression(transformExpression(expression.getObjectExpression() as Expression, "AttributeExpression:objectExpression"),
+                    transformExpression(expression.getProperty() as Expression, "PropertyExpression:property"))
+        } else if (expression.getClass() == PropertyExpression.class) {
+            if (!(expression.getObjectExpression() instanceof ClassExpression && expression.getProperty() instanceof ConstantExpression && expression.getProperty().getValue().toString() == "this")) {
+                transformedExpression = new PropertyExpression(transformExpression(expression.getObjectExpression() as Expression, "PropertyExpression:objectExpression"),
+                        transformExpression(expression.getProperty() as Expression, "PropertyExpression:property"))
             }
-        } else if (iExpression.getClass() == RangeExpression.class) {
-            transformedExpression = new RangeExpression(transformExpression(iExpression.getFrom() as Expression, "RangeExpression:from"),
-                    transformExpression(iExpression.getTo() as Expression, "RangeExpression:to"), iExpression.isInclusive() as Boolean)
-        } else if (iExpression.getClass() == SpreadExpression.class) {
-            transformedExpression = new SpreadExpression(transformExpression(iExpression.getExpression() as Expression, "SpreadExpression:expression"))
-        } else if (iExpression.getClass() == SpreadMapExpression.class) {
-            transformedExpression = new SpreadMapExpression(transformExpression(iExpression.getExpression() as Expression, "SpreadExpression:expression"))
-        } else if (iExpression.getClass() == StaticMethodCallExpression.class) {
+        } else if (expression.getClass() == RangeExpression.class) {
+            transformedExpression = new RangeExpression(transformExpression(expression.getFrom() as Expression, "RangeExpression:from"),
+                    transformExpression(expression.getTo() as Expression, "RangeExpression:to"), expression.isInclusive() as Boolean)
+        } else if (expression.getClass() == SpreadExpression.class) {
+            transformedExpression = new SpreadExpression(transformExpression(expression.getExpression() as Expression, "SpreadExpression:expression"))
+        } else if (expression.getClass() == SpreadMapExpression.class) {
+            transformedExpression = new SpreadMapExpression(transformExpression(expression.getExpression() as Expression, "SpreadExpression:expression"))
+        } else if (expression.getClass() == StaticMethodCallExpression.class) {
             //todo: StaticMethodCall transformation (wrap into "executeStaticMethod"; same applies to methodCallExpression when objectExpression is ClassExpression)
-            transformedExpression = new StaticMethodCallExpression(iExpression.getOwnerType() as ClassNode, iExpression.getMethod() as String,
-                    transformExpression(iExpression.getArguments() as Expression, "StaticMethodCallExpression:arguments"))
-        } else if (iExpression.getClass() == ElvisOperatorExpression.class) {
+            transformedExpression = new StaticMethodCallExpression(expression.getOwnerType() as ClassNode, expression.getMethod() as String,
+                    transformExpression(expression.getArguments() as Expression, "StaticMethodCallExpression:arguments"))
+        } else if (expression.getClass() == ElvisOperatorExpression.class) {
             transformedExpression = new ElvisOperatorExpression(
-                    transformExpression(iExpression.getTrueExpression() as Expression, "ElvisOperatorExpression:trueExpression"),
-                    transformExpression(iExpression.getFalseExpression() as Expression, "ElvisOperatorExpression:falseExpression")
+                    transformExpression(expression.getTrueExpression() as Expression, "ElvisOperatorExpression:trueExpression"),
+                    transformExpression(expression.getFalseExpression() as Expression, "ElvisOperatorExpression:falseExpression")
             )
-        } else if (iExpression.getClass() == TernaryExpression.class) {
+        } else if (expression.getClass() == TernaryExpression.class) {
             transformedExpression = new TernaryExpression(
-                    new BooleanExpression(transformExpression(iExpression.getBooleanExpression() as Expression, "TernaryExpression:booleanExpression")),
-                    transformExpression(iExpression.getTrueExpression() as Expression, "TernaryExpression:trueExpression"),
-                    transformExpression(iExpression.getFalseExpression() as Expression, "TernaryExpression:falseExpression")
+                    new BooleanExpression(transformExpression(expression.getBooleanExpression() as Expression, "TernaryExpression:booleanExpression")),
+                    transformExpression(expression.getTrueExpression() as Expression, "TernaryExpression:trueExpression"),
+                    transformExpression(expression.getFalseExpression() as Expression, "TernaryExpression:falseExpression")
             )
-        } else if (iExpression.getClass() == UnaryMinusExpression.class) {
-            transformedExpression = new UnaryMinusExpression(transformExpression(iExpression.getExpression() as Expression, "UnaryMinusExpression:expression"))
-        } else if (iExpression.getClass() == UnaryPlusExpression.class) {
-            transformedExpression = new UnaryPlusExpression(transformExpression(iExpression.getExpression() as Expression, "UnaryPlusExpression:expression"))
+        } else if (expression.getClass() == UnaryMinusExpression.class) {
+            transformedExpression = new UnaryMinusExpression(transformExpression(expression.getExpression() as Expression, "UnaryMinusExpression:expression"))
+        } else if (expression.getClass() == UnaryPlusExpression.class) {
+            transformedExpression = new UnaryPlusExpression(transformExpression(expression.getExpression() as Expression, "UnaryPlusExpression:expression"))
         }
         transformedExpression.isTransformed = true
-        transformedExpression.copyNodeMetaData(iExpression)
-        transformedExpression.setSourcePosition(iExpression)
-        return wrapExpressionIntoMethodCallExpression(transformedExpression, iSourceNodeName)
+        transformedExpression.copyNodeMetaData(expression)
+        transformedExpression.setSourcePosition(expression)
+        return wrapExpressionIntoMethodCallExpression(transformedExpression, sourceNodeName)
     }
 
 }

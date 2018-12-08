@@ -205,7 +205,8 @@ class CarburetorVisitor extends CodeVisitorSupport {
     @Override
     void visitShortTernaryExpression(ElvisOperatorExpression iElvisOperatorExpression) {
         iElvisOperatorExpression.origCodeString = carburetorTransformation.codeString(iElvisOperatorExpression)
-        super.visitShortTernaryExpression(iElvisOperatorExpression)
+        iElvisOperatorExpression.getBooleanExpression().visit(this)
+        iElvisOperatorExpression.getFalseExpression().visit(this)
     }
 
     @Override
@@ -218,7 +219,6 @@ class CarburetorVisitor extends CodeVisitorSupport {
     void visitPrefixExpression(PrefixExpression iPrefixExpression) {
         iPrefixExpression.origCodeString = carburetorTransformation.codeString(iPrefixExpression)
         super.visitPrefixExpression(iPrefixExpression)
-
     }
 
     @Override

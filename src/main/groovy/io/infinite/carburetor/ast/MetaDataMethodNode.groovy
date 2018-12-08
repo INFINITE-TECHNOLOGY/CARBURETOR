@@ -4,6 +4,8 @@ class MetaDataMethodNode extends MetaDataASTNode {
 
     String methodName
     String className
+    String classSimpleName
+    String packageName
 
     MetaDataMethodNode(
             String methodClassName,
@@ -14,6 +16,8 @@ class MetaDataMethodNode extends MetaDataASTNode {
             Integer lineNumber,
             Integer lastLineNumber
     ) {
+        this.packageName = packageName
+        this.classSimpleName = methodClassName
         this.className = methodClassPackageName + "." + methodClassName
         this.methodName = methodName
         this.columnNumber = columnNumber

@@ -2,14 +2,12 @@ package io.infinite.carburetor
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.inspect.swingui.AstNodeToScriptVisitor
-import groovy.transform.CompileStatic
 import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 import io.infinite.carburetor.ast.MetaDataExpression
 import io.infinite.carburetor.ast.MetaDataMethodNode
 import io.infinite.carburetor.ast.MetaDataStatement
 import org.apache.commons.lang3.exception.ExceptionUtils
-import org.codehaus.groovy.GroovyBugError
 import org.codehaus.groovy.ast.*
 import org.codehaus.groovy.ast.builder.AstBuilder
 import org.codehaus.groovy.ast.expr.*
@@ -393,7 +391,9 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         } else if (expression.getClass() == CastExpression.class) {
             transformedExpression = new CastExpression(expression.getType(), transformExpression(expression.getExpression() as Expression, "ClassExpression:expression"))
         } else if (expression.getClass() == ConstructorCallExpression.class) {
-            transformedExpression = new ConstructorCallExpression(expression.getType(), transformExpression(expression.getArguments() as Expression, "ConstructorCallExpression:arguments"))
+            if (!(expression.getArguments() instanceof TupleExpression)) {
+                transformedExpression = new ConstructorCallExpression(expression.getType(), transformExpression(expression.getArguments() as Expression, "ConstructorCallExpression:arguments"))
+            }
         } else if (expression.getClass() == MethodPointerExpression.class) {
             transformedExpression = new MethodPointerExpression(transformExpression(expression.getExpression() as Expression, "MethodPointerExpression:expression"),
                     transformExpression(expression.getMethodName() as Expression, "MethodPointerExpression:methodName"))

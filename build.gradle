@@ -1,12 +1,30 @@
-apply plugin: 'groovy'
-apply plugin: 'maven'
-apply plugin: 'idea'
-
+/*
+File
+https://github.com/virtualdogbert/GroovyConfigWriter/blob/master/build.gradle
+has been used as basis for this file.
+ */
+plugins {
+    id "groovy"
+    id "maven-publish"
+    id "com.jfrog.bintray" version "1.8.4"
+    id "com.jfrog.artifactory" version "4.8.1"
+    id "idea"
+    id "jacoco"
+}
+sourceCompatibility = 1.7
+group = "io.infinite"
+version = "1.0.0"
+description = "Parameterized Groovy AST proxifying Transformer"
+wrapper {
+    gradleVersion = "5.0"
+}
 repositories {
     jcenter()
-    mavenLocal()
 }
-
+sourceSets {
+    main.groovy.srcDirs = ["src/main/groovy"]
+    test.groovy.srcDirs = ["src/test/groovy"]
+}
 dependencies {
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.7'
     compile 'org.codehaus.groovy:groovy-all:2.5.4'
@@ -14,48 +32,81 @@ dependencies {
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8'
     testCompile group: 'junit', name: 'junit', version: '4.12'
     testCompile group: 'io.infinite', name: 'bobbin', version: '1.0.0'
+    testCompile "junit:junit:4.12"
 }
-
-buildscript {
-    repositories {
-        mavenCentral()
-        jcenter()
-        mavenLocal()
-    }
+task sourceJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier "sources"
 }
-
-uploadArchives {
-    repositories {
-        mavenLocal()
-        mavenDeployer {
-            repository(url: mavenLocal().url)
-            pom.version = '1.0.0'
-            pom.groupId = 'io.infinite'
-            pom.artifactId = 'carburetor'
+ext {
+    theTitle = "Parameterized Groovy AST proxifying Transformer"
+    titleForDocumentation = archivesBaseName + " " + version
+    packageTitle = group
+    description = "Parameterized Groovy AST proxifying Transformer"
+}
+publishing {
+    publications {
+        groovyMaven(MavenPublication) {
+            from components.java
+            artifact(sourceJar) {
+                classifier "sources"
+            }
         }
     }
 }
-
-sourceSets {
-    main {
-        groovy {
-            srcDirs = ['src/main/groovy', 'generated']
-        }
-    }
-
-    test {
-        groovy {
-            srcDirs = ['src/test/groovy']
-        }
-        resources {
-            srcDirs = ['src/test/resources']
-        }
+task jarSrc(type: Jar, dependsOn: classes) {
+    classifier = "sources"
+    from sourceSets.main.allSource
+}
+artifacts {
+    archives(jarSrc)
+}
+bintray {
+    user = System.getProperty("bintrayuser")
+    key = System.getProperty("bintraypassword")
+    publications = ["groovyMaven"]
+    def projectName = project.name
+    def projectDescription = project.description
+    pkg {
+        userOrg = "infinite-technology"
+        repo = "m2"
+        name = "carburetor"
+        desc = "Parameterized Groovy AST proxifying Transformer"
+        issueTrackerUrl = "https://github.com/INFINITE-TECHNOLOGY/CARBURETOR/issues"
+        vcsUrl = "https://github.com/INFINITE-TECHNOLOGY/CARBURETOR.git"
+        websiteUrl = "https://i-t.io/Carburetor/"
+        licenses = ["Apache-2.0"]
     }
 }
-
-tasks.withType(GroovyCompile) {
-    configure(groovyOptions.forkOptions) {
-        memoryMaximumSize = '1g'
-        jvmArgs = ['-XX:MaxPermSize=512m', '-Xms512m', '-Xmx1g']
+artifactory {
+    contextUrl = 'http://oss.jfrog.org'
+    publish {
+        repository {
+            repoKey = 'oss-snapshot-local'
+            username = System.getProperty("bintrayuser")
+            password = System.getProperty("bintraypassword")
+        }
+        defaults {
+            publications('groovyMaven')
+            publishArtifacts = true
+            publishPom = true
+        }
+    }
+    resolve {
+        repoKey = 'jcenter'
+    }
+    clientConfig.info.setBuildNumber(System.currentTimeMillis().toString())
+}
+test {
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
     }
 }
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        html.enabled false
+    }
+}
+check.dependsOn jacocoTestReport

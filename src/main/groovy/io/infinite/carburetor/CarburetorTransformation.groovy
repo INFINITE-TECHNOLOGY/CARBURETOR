@@ -52,12 +52,15 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     abstract Boolean excludeMethodNode(MethodNode methodNode)
 
     void visitClassNode(ClassNode classNode) {
+        classDeclarations(classNode)
         classNode.methods.each {
             if (!(it.isAbstract() || excludeMethodNode(it))) {
                 visitMethod(it)
             }
         }
     }
+
+    abstract void classDeclarations(ClassNode classNode)
 
     void visit(ASTNode[] iAstNodeArray, SourceUnit iSourceUnit) {
         try {
@@ -76,6 +79,8 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         }
     }
 
+    abstract void methodDeclarations(MethodNode methodNode)
+
     void visitMethod(MethodNode methodNode) {
         try {
             if (methodNode.isTransformed == true) {
@@ -87,10 +92,11 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             if (methodNode.isAbstract()) {
                 throw new CarburetorException("Carburetor does not support annotation of Abstract Methods")
             }
+            methodDeclarations(methodNode)
             String methodName = methodNode.getName()
             String className = methodNode.getDeclaringClass().getNameWithoutPackage()
-            MDC.put("unitName", "$className.${methodName.replace("<", "").replace(">", "")}")
-            carburetorLevel = getAnnotationParameter("level", annotationNode, carburetorConfig.getLevel(annotationNode.getClassNode().getName())) as CarburetorLevel
+            MDC.put("unitName", "COMPILATION_$className.${methodName.replace("<", "").replace(">", "")}")
+            carburetorLevel = getAnnotationParameter("level", carburetorConfig.getLevel(annotationNode.getClassNode().getName())) as CarburetorLevel
             getAnnotationParameters()
             transformMethod(methodNode)
             sourceUnit.AST.classes.each {
@@ -106,7 +112,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
 
     abstract void getAnnotationParameters()
 
-    Object getAnnotationParameter(String annotationName, AnnotationNode annotationNode, Object defaultValue) {
+    Object getAnnotationParameter(String annotationName, Object defaultValue) {
         Expression memberExpression = annotationNode.getMember(annotationName)
         if (memberExpression instanceof PropertyExpression) {
             ConstantExpression constantExpression = memberExpression.getProperty() as ConstantExpression

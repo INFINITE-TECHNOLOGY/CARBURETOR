@@ -20,6 +20,7 @@ import org.codehaus.groovy.runtime.StackTraceUtils
 import org.codehaus.groovy.transform.AbstractASTTransformation
 import org.codehaus.groovy.transform.GroovyASTTransformation
 import org.codehaus.groovy.transform.sc.ListOfExpressionsExpression
+import org.slf4j.MDC
 
 @ToString(includeNames = true, includeFields = true, includePackage = false)
 @GroovyASTTransformation(
@@ -30,20 +31,29 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
 
     AnnotationNode annotationNode
     CarburetorLevel carburetorLevel
-    static Integer uniqueClosureParamCounter = 0
-    private static CarburetorConfig carburetorConfig = new CarburetorConfig()
+    private static Integer uniqueClosureParamCounter = 0
+    CarburetorConfig carburetorConfig = initCarburetorConfig()
 
     static {
-        if (new File("./Carburetor.json").exists()) {
-            carburetorConfig = new ObjectMapper().readValue(new File("./Carburetor.json").getText(), CarburetorConfig.class)
-        }
         ASTNode.getMetaClass().origCodeString = null
         ASTNode.getMetaClass().isTransformed = null
     }
 
+    CarburetorConfig initCarburetorConfig() {
+        CarburetorConfig carburetorConfig
+        if (new File("./Carburetor.json").exists()) {
+            carburetorConfig = new ObjectMapper().readValue(new File("./Carburetor.json").getText(), CarburetorConfig.class)
+        } else {
+            carburetorConfig = new CarburetorConfig()
+        }
+        return carburetorConfig
+    }
+
+    abstract Boolean excludeMethodNode(MethodNode methodNode)
+
     void visitClassNode(ClassNode classNode) {
         classNode.methods.each {
-            if (!it.isAbstract()) {
+            if (!(it.isAbstract() || excludeMethodNode(it))) {
                 visitMethod(it)
             }
         }
@@ -79,8 +89,9 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             }
             String methodName = methodNode.getName()
             String className = methodNode.getDeclaringClass().getNameWithoutPackage()
-            Thread.currentThread().setName("$className.${methodName.replace("<", "").replace(">", "")}")
-            carburetorLevel = getAnnotationValue("level", annotationNode, methodName, carburetorConfig.getLevel(annotationNode.getClassNode().getName())) as CarburetorLevel
+            MDC.put("unitName", "$className.${methodName.replace("<", "").replace(">", "")}")
+            carburetorLevel = getAnnotationParameter("level", annotationNode, carburetorConfig.getLevel(annotationNode.getClassNode().getName())) as CarburetorLevel
+            getAnnotationParameters()
             transformMethod(methodNode)
             sourceUnit.AST.classes.each {
                 new VariableScopeVisitor(sourceUnit, true).visitClass(it)
@@ -93,7 +104,9 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         }
     }
 
-    static Object getAnnotationValue(String annotationName, AnnotationNode annotationNode, String methodName, Object defaultValue) {
+    abstract void getAnnotationParameters()
+
+    Object getAnnotationParameter(String annotationName, AnnotationNode annotationNode, Object defaultValue) {
         Expression memberExpression = annotationNode.getMember(annotationName)
         if (memberExpression instanceof PropertyExpression) {
             ConstantExpression constantExpression = memberExpression.getProperty() as ConstantExpression
@@ -103,7 +116,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         } else if (memberExpression == null) {
             return defaultValue
         } else {
-            throw new Exception("Unsupported annotation \"$annotationName\" member expression class: " + memberExpression.getClass().getCanonicalName() + " for method " + methodName)
+            throw new CarburetorException("Unsupported annotation \"$annotationName\" member expression class: " + memberExpression.getClass().getCanonicalName() + " for method " + MDC.get("unitName"))
         }
     }
 
@@ -148,7 +161,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         return methodCallExpression
     }
 
-    static Statement checkSuperConstructorCall(MethodNode iMethodNode) {
+    Statement checkSuperConstructorCall(MethodNode iMethodNode) {
         Statement firstStatement = new EmptyStatement()
         if (iMethodNode instanceof ConstructorNode) {
             def initialFirstStatement = ((BlockStatement) iMethodNode.getCode()).getStatements().get(0)
@@ -168,7 +181,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
 
     abstract Statement createEngineDeclaration()
 
-    private void transformMethod(MethodNode iMethodNode) {
+    void transformMethod(MethodNode iMethodNode) {
         List<MapEntryExpression> argumentMapEntryExpressionList = new ArrayList<>()
         if (methodArgumentsPresent(iMethodNode.getParameters())) {
             for (parameter in iMethodNode.getParameters()) {
@@ -244,18 +257,18 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         return throwStatement
     }
 
-    static Statement text2statement(String iCodeText) {
+    Statement text2statement(String iCodeText) {
         List<ASTNode> resultingStatements = new AstBuilder().buildFromString(CompilePhase.SEMANTIC_ANALYSIS, true, iCodeText.replace("\$", "\\\$"))
         return resultingStatements.first() as Statement
     }
 
-    static String codeString(ASTNode iAstNode) {
+    String codeString(ASTNode iAstNode) {
         StringWriter stringWriter = new StringWriter()
         iAstNode.visit(new AstNodeToScriptVisitor(stringWriter))
         return stringWriter.getBuffer().toString()
     }
 
-    static final Boolean methodArgumentsPresent(Object iArgs) {
+    final Boolean methodArgumentsPresent(Object iArgs) {
         if (iArgs != null) {
             if (iArgs instanceof Collection) {
                 return iArgs.size() > 0
@@ -269,7 +282,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         }
     }
 
-    private BlockStatement transformControlStatement(Statement statement, String sourceNodeName) {
+    BlockStatement transformControlStatement(Statement statement, String sourceNodeName) {
         BlockStatement blockStatement = GeneralUtils.block(new VariableScope())
         MethodCallExpression methodCallExpression = GeneralUtils.callX(
                 GeneralUtils.varX(getEngineVarName()),
@@ -334,7 +347,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         return blockStatement
     }
 
-    private ListOfExpressionsExpression transformDeclarationExpression(DeclarationExpression declarationExpression, String sourceNodeName) {
+    ListOfExpressionsExpression transformDeclarationExpression(DeclarationExpression declarationExpression, String sourceNodeName) {
         ListOfExpressionsExpression listOfExpressionsExpression = new ListOfExpressionsExpression()
         MethodCallExpression expressionExecutionOpenMethodCallExpression = GeneralUtils.callX(
                 GeneralUtils.varX(getEngineVarName()),

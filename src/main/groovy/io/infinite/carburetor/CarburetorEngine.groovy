@@ -56,7 +56,7 @@ abstract class CarburetorEngine {
         return methodResult
     }
 
-    static final void ensureClosureEquivalency(Closure iClosure, Object iAutomaticThis) {
+    final void ensureClosureEquivalency(Closure iClosure, Object iAutomaticThis) {
         Field thisObjectField = Closure.getDeclaredField('thisObject')
         Field ownerField = Closure.getDeclaredField('owner')
         thisObjectField.setAccessible(true)

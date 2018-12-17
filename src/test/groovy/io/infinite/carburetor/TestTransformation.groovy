@@ -4,6 +4,7 @@ import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 import io.infinite.carburetor.CarburetorTransformation
 import org.codehaus.groovy.ast.ClassHelper
+import org.codehaus.groovy.ast.ClassNode
 import org.codehaus.groovy.ast.MethodNode
 import org.codehaus.groovy.ast.stmt.Statement
 import org.codehaus.groovy.ast.tools.GeneralUtils
@@ -20,6 +21,16 @@ class TestTransformation extends CarburetorTransformation {
     @Override
     Boolean excludeMethodNode(MethodNode methodNode) {
         return false
+    }
+
+    @Override
+    void classDeclarations(ClassNode classNode) {
+
+    }
+
+    @Override
+    void methodDeclarations(MethodNode methodNode) {
+
     }
 
     @Override

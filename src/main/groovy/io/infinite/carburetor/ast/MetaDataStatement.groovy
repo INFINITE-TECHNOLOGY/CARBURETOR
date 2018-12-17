@@ -3,6 +3,7 @@ package io.infinite.carburetor.ast
 class MetaDataStatement extends MetaDataASTNode {
 
     String statementClassName
+    String sourceNodeName
 
     MetaDataStatement(
             String statementClassName,

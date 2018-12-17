@@ -3,6 +3,7 @@ package io.infinite.carburetor.ast
 class MetaDataExpression extends MetaDataASTNode {
 
     String expressionClassName
+    String sourceNodeName
 
     MetaDataExpression(
         String expressionClassName,

@@ -278,7 +278,6 @@ class AllTests extends GroovyTestCase {
         getTestInstance("tests", "VisitClosureListExpression.groovy").visitClosureListExpressionStatementLevel()
         getTestInstance("tests", "VisitClosureListExpression.groovy").visitClosureListExpressionExpressionLevel()
         getTestInstance("issues", "AnonymousInnerClassConstructor.groovy").runTest()
-        getTestInstance("others", "RuntimeExceptionTEst.groovy").runTest()
     }
 
     @Memoized

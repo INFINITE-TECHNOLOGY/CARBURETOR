@@ -36,7 +36,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
 
     static {
         ASTNode.getMetaClass().origCodeString = null
-        ASTNode.getMetaClass().isTransformed = null
+        ASTNode.getMetaClass().transformedBy = null
     }
 
     CarburetorConfig initCarburetorConfig() {
@@ -71,7 +71,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             } else if (iAstNodeArray[1] instanceof ClassNode) {
                 visitClassNode(iAstNodeArray[1] as ClassNode)
             } else {
-                throw new CarburetorException("Unsupported Annotated Node; Only [Class, Method, Constructor] are supported.")
+                throw new CarburetorCompileException(iAstNodeArray[1], "Unsupported Annotated Node; Only [Class, Method, Constructor] are supported.", this)
             }
         } catch (Exception exception) {
             log.error(ExceptionUtils.getStackTrace(new StackTraceUtils().sanitize(exception)))
@@ -83,14 +83,17 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
 
     void visitMethod(MethodNode methodNode) {
         try {
-            if (methodNode.isTransformed == true) {
+            if (methodNode.transformedBy == this) {
                 return
             }
             if (methodNode.getDeclaringClass().getOuterClass() != null) {
-                throw new CarburetorException("Carburetor currently does not support annotations in Inner Classes.")
+                throw new CarburetorCompileException(methodNode, "Carburetor currently does not support annotations in Inner Classes.", this)
             }
             if (methodNode.isAbstract()) {
-                throw new CarburetorException("Carburetor does not support annotation of Abstract Methods")
+                throw new CarburetorCompileException(methodNode, "Carburetor does not support annotation of Abstract Methods", this)
+            }
+            if (codeString(methodNode.getCode()).contains(getEngineVarName())) {
+                throw new CarburetorCompileException(methodNode, "Duplicate transformation", this)
             }
             methodDeclarations(methodNode)
             String methodName = methodNode.getName()
@@ -103,10 +106,10 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                 new VariableScopeVisitor(sourceUnit, true).visitClass(it)
             }
             log.debug(codeString(methodNode.getCode()))
-            methodNode.isTransformed = true
+            methodNode.transformedBy = this
         } catch (Exception exception) {
             log.error(ExceptionUtils.getStackTrace(new StackTraceUtils().sanitize(exception)))
-            throw exception
+            throw new CarburetorCompileException(methodNode, exception, this)
         }
     }
 
@@ -122,7 +125,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         } else if (memberExpression == null) {
             return defaultValue
         } else {
-            throw new CarburetorException("Unsupported annotation \"$annotationName\" member expression class: " + memberExpression.getClass().getCanonicalName() + " for method " + MDC.get("unitName"))
+            throw new CarburetorCompileException(memberExpression, "Unsupported annotation \"$annotationName\" member expression class: " + memberExpression.getClass().getCanonicalName() + " for method " + MDC.get("unitName"), this)
         }
     }
 
@@ -134,7 +137,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                 statement
         )
         uniqueClosureParamCounter++
-        closureExpression.isTransformed = statement.isTransformed
+        closureExpression.transformedBy = statement.transformedBy
         return closureExpression
     }
 
@@ -163,7 +166,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         )
         methodCallExpression.copyNodeMetaData(expression)
         methodCallExpression.setSourcePosition(expression)
-        methodCallExpression.isTransformed = true
+        methodCallExpression.transformedBy = this
         return methodCallExpression
     }
 
@@ -188,6 +191,9 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     abstract Statement createEngineDeclaration()
 
     void transformMethod(MethodNode iMethodNode) {
+        if (carburetorLevel.value() == CarburetorLevel.NONE.value()) {
+            return
+        }
         List<MapEntryExpression> argumentMapEntryExpressionList = new ArrayList<>()
         if (methodArgumentsPresent(iMethodNode.getParameters())) {
             for (parameter in iMethodNode.getParameters()) {
@@ -224,37 +230,73 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                 )
         )
         Statement exceptionStatement = new ExpressionStatement(GeneralUtils.callX(GeneralUtils.varX(getEngineVarName()), "exception", GeneralUtils.args(GeneralUtils.varX("automaticException"))))
-        if (carburetorLevel.value() >= CarburetorLevel.METHOD.value()) {
+        if (carburetorLevel.value() >= CarburetorLevel.STATEMENT.value()) {
             iMethodNode.getCode().visit(new CarburetorVisitor(this, carburetorLevel))//<<<<<<<<<<<<<<VISIT<<<<<
-            iMethodNode.setCode(
-                    GeneralUtils.block(
-                            firstStatement,
-                            engineDeclarationStatement,
-                            automaticThisDeclaration,
-                            methodExecutionOpen,
-                            {
-                                TryCatchStatement tryCatchStatement = new TryCatchStatement(
-                                        {
-                                            if (iMethodNode.isVoidMethod()) {
-                                                return iMethodNode.getCode()
-                                            } else {
-                                                return new ExpressionStatement(GeneralUtils.callX(
-                                                        GeneralUtils.varX(getEngineVarName()),
-                                                        "executeMethod",
-                                                        GeneralUtils.args(wrapStatementIntoClosure(iMethodNode.getCode()), GeneralUtils.varX("automaticThis"))
-                                                ))
-                                            }
-                                        }.call() as Statement,
-                                        new ExpressionStatement(GeneralUtils.callX(GeneralUtils.varX(getEngineVarName()), "executionClose"))
-                                )
-                                tryCatchStatement.addCatch(
-                                        GeneralUtils.catchS(GeneralUtils.param(ClassHelper.make(Exception.class), "automaticException"), GeneralUtils.block(exceptionStatement, createThrowStatement()))
-                                )
-                                return tryCatchStatement
-                            }.call() as TryCatchStatement
-                    )
-            )
+            methodStatementLevelTransformation(iMethodNode, firstStatement, engineDeclarationStatement, automaticThisDeclaration, methodExecutionOpen, exceptionStatement)
+        } else if (carburetorLevel.value() == CarburetorLevel.METHOD.value()) {
+            methodStatementLevelTransformation(iMethodNode, firstStatement, engineDeclarationStatement, automaticThisDeclaration, methodExecutionOpen, exceptionStatement)
+        } else if (carburetorLevel.value() == CarburetorLevel.ERROR.value()) {
+            methodErrorLevelTransformation(iMethodNode, firstStatement, engineDeclarationStatement, automaticThisDeclaration, methodExecutionOpen)
+        } else {
+            throw new CarburetorCompileException(iMethodNode, "Unsupported Carburetor Level: " + carburetorLevel.toString(), this)
         }
+    }
+
+    void methodStatementLevelTransformation(MethodNode iMethodNode, Statement firstStatement, Statement engineDeclarationStatement, Statement automaticThisDeclaration, ExpressionStatement methodExecutionOpen, Statement exceptionStatement) {
+        iMethodNode.setCode(
+                GeneralUtils.block(
+                        firstStatement,
+                        engineDeclarationStatement,
+                        automaticThisDeclaration,
+                        methodExecutionOpen,
+                        {
+                            TryCatchStatement tryCatchStatement = new TryCatchStatement(
+                                    {
+                                        if (iMethodNode.isVoidMethod()) {
+                                            return iMethodNode.getCode()
+                                        } else {
+                                            return new ExpressionStatement(GeneralUtils.callX(
+                                                    GeneralUtils.varX(getEngineVarName()),
+                                                    "executeMethod",
+                                                    GeneralUtils.args(wrapStatementIntoClosure(iMethodNode.getCode()), GeneralUtils.varX("automaticThis"))
+                                            ))
+                                        }
+                                    }.call() as Statement,
+                                    new ExpressionStatement(GeneralUtils.callX(GeneralUtils.varX(getEngineVarName()), "executionClose"))
+                            )
+                            tryCatchStatement.addCatch(
+                                    GeneralUtils.catchS(GeneralUtils.param(ClassHelper.make(Exception.class), "automaticException"), GeneralUtils.block(exceptionStatement, createThrowStatement()))
+                            )
+                            return tryCatchStatement
+                        }.call() as TryCatchStatement
+                )
+        )
+    }
+
+    void methodErrorLevelTransformation(MethodNode iMethodNode, Statement firstStatement, Statement engineDeclarationStatement, Statement automaticThisDeclaration, Statement methodExecutionOpen) {
+        Statement logException = new ExpressionStatement(GeneralUtils.callX(GeneralUtils.varX(getEngineVarName()), "exception", GeneralUtils.args(GeneralUtils.varX("automaticException"))))
+        iMethodNode.setCode(
+                GeneralUtils.block(
+                        firstStatement,
+                        engineDeclarationStatement,
+                        automaticThisDeclaration,
+                        {
+                            TryCatchStatement tryCatchStatement = new TryCatchStatement(iMethodNode.getCode(), EmptyStatement.INSTANCE)
+                            tryCatchStatement.addCatch(
+                                    GeneralUtils.catchS(
+                                            GeneralUtils.param(ClassHelper.make(Exception.class), "automaticException"),
+                                            GeneralUtils.block(
+                                                    methodExecutionOpen,
+                                                    logException,
+                                                    new ExpressionStatement(GeneralUtils.callX(GeneralUtils.varX("automaticBlackBox"), "executionClose")),
+                                                    createThrowStatement()
+                                            )
+                                    )
+                            )
+                            return tryCatchStatement
+                        }.call() as TryCatchStatement
+                )
+        )
     }
 
     Statement createThrowStatement() {
@@ -312,12 +354,12 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         blockStatement.addStatement(statement)
         blockStatement.copyNodeMetaData(statement)
         blockStatement.setSourcePosition(statement)
-        blockStatement.isTransformed = true
+        blockStatement.transformedBy = this
         return blockStatement
     }
 
     Statement transformStatement(Statement statement, String sourceNodeName) {
-        if (statement == null || statement instanceof EmptyStatement || statement.isTransformed == true) {
+        if (statement == null || statement instanceof EmptyStatement || statement.transformedBy == this) {
             return statement
         }
         if (carburetorLevel.value() < CarburetorLevel.STATEMENT.value() || statement instanceof BlockStatement || statement instanceof ExpressionStatement) {
@@ -349,7 +391,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         blockStatement.addStatement(text2statement("${getEngineVarName()}.executionClose()"))
         blockStatement.copyNodeMetaData(statement)
         blockStatement.setSourcePosition(statement)
-        blockStatement.isTransformed = true
+        blockStatement.transformedBy = this
         return blockStatement
     }
 
@@ -382,11 +424,17 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         listOfExpressionsExpression.addExpression(expressionExecutionCloseMethodCallExpression)
         listOfExpressionsExpression.copyNodeMetaData(declarationExpression)
         listOfExpressionsExpression.setSourcePosition(declarationExpression)
-        listOfExpressionsExpression.isTransformed = true
+        listOfExpressionsExpression.transformedBy = this
         return listOfExpressionsExpression
     }
 
     Expression transformExpression(Expression expression, String sourceNodeName) {
+        if (sourceNodeName=="ArgumentListExpression:expressions" && expression.getClass().simpleName=="VariableExpression") {
+            println "z"
+        }
+        if (codeString(expression)=="this " && expression.getClass().simpleName=="VariableExpression") {
+            println "z"
+        }
         Expression transformedExpression = expression
         if (expression == null ||
                 carburetorLevel.value() < CarburetorLevel.EXPRESSION.value() ||
@@ -395,9 +443,9 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                 expression instanceof ArgumentListExpression ||
                 (expression instanceof ConstructorCallExpression && expression.isSpecialCall()) ||
                 (expression instanceof VariableExpression && expression.isSuperExpression()) ||
-                expression.isTransformed == true
+                (expression.transformedBy == this)
         ) {
-            expression?.isTransformed == true
+            expression?.transformedBy == true
             return expression
         } else if (expression.getClass() == DeclarationExpression.class) {
             return transformDeclarationExpression(expression as DeclarationExpression, sourceNodeName)
@@ -410,8 +458,9 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         } else if (expression.getClass() == CastExpression.class) {
             transformedExpression = new CastExpression(expression.getType(), transformExpression(expression.getExpression() as Expression, "ClassExpression:expression"))
         } else if (expression.getClass() == ConstructorCallExpression.class) {
-            if (!(expression.getArguments() instanceof TupleExpression)) {
+            if (!(expression.getArguments().getClass() == TupleExpression.class)) {
                 transformedExpression = new ConstructorCallExpression(expression.getType(), transformExpression(expression.getArguments() as Expression, "ConstructorCallExpression:arguments"))
+                transformedExpression.usingAnonymousInnerClass = expression.usingAnonymousInnerClass
             }
         } else if (expression.getClass() == MethodPointerExpression.class) {
             transformedExpression = new MethodPointerExpression(transformExpression(expression.getExpression() as Expression, "MethodPointerExpression:expression"),
@@ -451,7 +500,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         } else if (expression.getClass() == UnaryPlusExpression.class) {
             transformedExpression = new UnaryPlusExpression(transformExpression(expression.getExpression() as Expression, "UnaryPlusExpression:expression"))
         }
-        transformedExpression.isTransformed = true
+        transformedExpression.transformedBy = this
         transformedExpression.copyNodeMetaData(expression)
         transformedExpression.setSourcePosition(expression)
         return wrapExpressionIntoMethodCallExpression(transformedExpression, sourceNodeName)

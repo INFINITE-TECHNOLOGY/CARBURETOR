@@ -1,6 +1,7 @@
 package io.infinite.carburetor
 
 import groovy.util.logging.Slf4j
+import io.infinite.carburetor.ast.MetaDataASTNode
 import io.infinite.carburetor.ast.MetaDataExpression
 import io.infinite.carburetor.ast.MetaDataMethodNode
 import io.infinite.carburetor.ast.MetaDataStatement
@@ -22,13 +23,20 @@ abstract class CarburetorEngine {
         expressionExecutionOpen(metaDataExpression)
         try {
             ensureClosureEquivalency(expressionClosure, automaticThis)
-            Object evaluationResult = expressionClosure.call()
+            Object evaluationResult
+            try {
+                evaluationResult = expressionClosure.call()
+            } catch (Exception exception) {
+                throw carburetorRuntimeExceptionHandle(exception, metaDataExpression)
+            }
             handleExpressionEvaluationResult(evaluationResult)
             return evaluationResult
         } finally {
             executionClose()
         }
     }
+
+    abstract Exception carburetorRuntimeExceptionHandle(Exception exception, MetaDataASTNode metaDataASTNode)
 
     abstract void statementExecutionOpen(MetaDataStatement metaDataStatement)
 

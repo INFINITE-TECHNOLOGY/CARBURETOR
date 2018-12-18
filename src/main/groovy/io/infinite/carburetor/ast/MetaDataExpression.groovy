@@ -1,5 +1,8 @@
 package io.infinite.carburetor.ast
 
+import groovy.transform.ToString
+
+@ToString(includeNames = true, includeFields = true, includeSuper = true)
 class MetaDataExpression extends MetaDataASTNode {
 
     String expressionClassName

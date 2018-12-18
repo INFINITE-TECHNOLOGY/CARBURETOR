@@ -1,5 +1,6 @@
 package io.infinite.carburetor
 
+import io.infinite.carburetor.ast.MetaDataASTNode
 import io.infinite.carburetor.ast.MetaDataExpression
 import io.infinite.carburetor.ast.MetaDataMethodNode
 import io.infinite.carburetor.ast.MetaDataStatement
@@ -18,6 +19,11 @@ class TestEngine extends CarburetorEngine{
     @Override
     def handleExpressionEvaluationResult(Object expressionEvaluationResult) {
         return null
+    }
+
+    @Override
+    Exception carburetorRuntimeExceptionHandle(Exception exception, MetaDataASTNode metaDataASTNode) {
+        return new CarburetorRuntimeException(metaDataASTNode, exception)
     }
 
     @Override

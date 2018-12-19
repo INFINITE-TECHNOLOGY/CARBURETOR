@@ -46,6 +46,10 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         } else {
             carburetorConfig = new CarburetorConfig()
         }
+        log.info("Carburetor default level: " + carburetorConfig.getDefaultLevel())
+        log.info("Carburetor levels by transformation implementation: " + carburetorConfig.getLevelsByImplementingClass().toString())
+        log.info("Carburetor transformation implementation: " + getClass().getCanonicalName())
+        log.info("Carburetor level by transformation implementation: " + carburetorConfig.getLevelsByImplementingClass().get(getClass().getCanonicalName()))
         return carburetorConfig
     }
 
@@ -429,12 +433,6 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     }
 
     Expression transformExpression(Expression expression, String sourceNodeName) {
-        if (sourceNodeName=="ArgumentListExpression:expressions" && expression.getClass().simpleName=="VariableExpression") {
-            println "z"
-        }
-        if (codeString(expression)=="this " && expression.getClass().simpleName=="VariableExpression") {
-            println "z"
-        }
         Expression transformedExpression = expression
         if (expression == null ||
                 carburetorLevel.value() < CarburetorLevel.EXPRESSION.value() ||

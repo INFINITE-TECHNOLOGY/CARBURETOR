@@ -54,6 +54,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             report("Level by transformation implementation: " + carburetorConfig.getLevelsByImplementingClass().get(getClass().getCanonicalName()))
         } else {
             carburetorConfig = new CarburetorConfig()
+            report("Carburetor.json not found at " + new File("./").getCanonicalPath())
             report("Using default level: " + carburetorConfig.getDefaultLevel())
         }
         return carburetorConfig

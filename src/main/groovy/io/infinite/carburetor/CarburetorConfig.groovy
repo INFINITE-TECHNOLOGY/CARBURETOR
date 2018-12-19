@@ -6,7 +6,7 @@ class CarburetorConfig {
     String defaultLevel = "EXPRESSION"
 
     CarburetorLevel getLevel(String annotationClassName) {
-        return CarburetorLevel.valueOf(levelsByImplementingClass.get(annotationClassName)?:defaultLevel)
+        return CarburetorLevel.valueOf(levelsByImplementingClass.get(annotationClassName) ?: defaultLevel)
     }
 
 }

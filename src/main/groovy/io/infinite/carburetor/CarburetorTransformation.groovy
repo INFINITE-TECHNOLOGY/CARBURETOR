@@ -39,17 +39,23 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         ASTNode.getMetaClass().transformedBy = null
     }
 
+    void report(String msg) {
+        log.info("Carburator: " + Thread.currentThread().getName() + ": " + msg)
+    }
+
     CarburetorConfig initCarburetorConfig() {
         CarburetorConfig carburetorConfig
+        MDC.put("unitName", "CARBURETOR_INIT")
         if (new File("./Carburetor.json").exists()) {
             carburetorConfig = new ObjectMapper().readValue(new File("./Carburetor.json").getText(), CarburetorConfig.class)
+            report("Global level: " + carburetorConfig.getDefaultLevel())
+            report("Levels by transformation implementation: " + carburetorConfig.getLevelsByImplementingClass().toString())
+            report("Transformation implementation: " + getClass().getCanonicalName())
+            report("Level by transformation implementation: " + carburetorConfig.getLevelsByImplementingClass().get(getClass().getCanonicalName()))
         } else {
             carburetorConfig = new CarburetorConfig()
+            report("Using default level: " + carburetorConfig.getDefaultLevel())
         }
-        log.info("Carburetor default level: " + carburetorConfig.getDefaultLevel())
-        log.info("Carburetor levels by transformation implementation: " + carburetorConfig.getLevelsByImplementingClass().toString())
-        log.info("Carburetor transformation implementation: " + getClass().getCanonicalName())
-        log.info("Carburetor level by transformation implementation: " + carburetorConfig.getLevelsByImplementingClass().get(getClass().getCanonicalName()))
         return carburetorConfig
     }
 
@@ -102,7 +108,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             methodDeclarations(methodNode)
             String methodName = methodNode.getName()
             String className = methodNode.getDeclaringClass().getNameWithoutPackage()
-            MDC.put("unitName", "COMPILATION_$className.${methodName.replace("<", "").replace(">", "")}")
+            MDC.put("unitName", "CARBURETOR_$className.${methodName.replace("<", "").replace(">", "")}")
             carburetorLevel = getAnnotationParameter("level", carburetorConfig.getLevel(annotationNode.getClassNode().getName())) as CarburetorLevel
             getAnnotationParameters()
             transformMethod(methodNode)

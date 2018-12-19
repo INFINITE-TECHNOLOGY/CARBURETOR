@@ -1,7 +1,8 @@
 {
-
-  "levelsByImplementingClass": {
-
-  },
+  "levelsByImplementingClass": [
+    {
+      "package.class": "level"
+    }
+  ],
   "defaultLevel": "EXPRESSION"
 }

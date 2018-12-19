@@ -20,9 +20,10 @@ wrapper {
 }
 repositories {
     jcenter()
-    maven {
+    /*maven {
         url "https://oss.jfrog.org/artifactory/oss-snapshot-local"
-    }
+    }*/
+    mavenLocal()
 }
 sourceSets {
     main.groovy.srcDirs = ["src/main/groovy"]

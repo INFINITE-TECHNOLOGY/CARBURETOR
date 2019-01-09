@@ -7,6 +7,7 @@ import groovy.util.logging.Slf4j
 import io.infinite.carburetor.ast.MetaDataExpression
 import io.infinite.carburetor.ast.MetaDataMethodNode
 import io.infinite.carburetor.ast.MetaDataStatement
+import io.infinite.supplies.ast.cache.Static
 import org.apache.commons.lang3.exception.ExceptionUtils
 import org.codehaus.groovy.ast.*
 import org.codehaus.groovy.ast.builder.AstBuilder
@@ -32,7 +33,9 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     AnnotationNode annotationNode
     CarburetorLevel carburetorLevel
     private static Integer uniqueClosureParamCounter = 0
-    CarburetorConfig carburetorConfig = initCarburetorConfig()
+
+    @Static
+    final CarburetorConfig carburetorConfig = initCarburetorConfig()
 
     static {
         ASTNode.getMetaClass().origCodeString = null
@@ -86,7 +89,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             }
         } catch (Exception exception) {
             log.error(ExceptionUtils.getStackTrace(new StackTraceUtils().sanitize(exception)))
-            throw exception
+            throw new CarburetorCompileException(iAstNodeArray[1], exception, this)
         }
     }
 
@@ -127,17 +130,20 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     abstract void getAnnotationParameters()
 
     Object getAnnotationParameter(String annotationName, Object defaultValue) {
+        Object result
         Expression memberExpression = annotationNode.getMember(annotationName)
         if (memberExpression instanceof PropertyExpression) {
             ConstantExpression constantExpression = memberExpression.getProperty() as ConstantExpression
-            return constantExpression.getValue()
+            result = constantExpression.getValue()
         } else if (memberExpression instanceof ConstantExpression) {
-            return memberExpression.getValue()
+            result = memberExpression.getValue()
         } else if (memberExpression == null) {
-            return defaultValue
+            result = defaultValue
         } else {
             throw new CarburetorCompileException(memberExpression, "Unsupported annotation \"$annotationName\" member expression class: " + memberExpression.getClass().getCanonicalName() + " for method " + MDC.get("unitName"), this)
         }
+        log.debug(annotationName + "=" + defaultValue)
+        return result
     }
 
     ClosureExpression wrapStatementIntoClosure(Statement statement) {

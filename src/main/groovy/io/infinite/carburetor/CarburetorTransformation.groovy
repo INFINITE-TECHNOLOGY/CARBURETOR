@@ -7,7 +7,7 @@ import groovy.util.logging.Slf4j
 import io.infinite.carburetor.ast.MetaDataExpression
 import io.infinite.carburetor.ast.MetaDataMethodNode
 import io.infinite.carburetor.ast.MetaDataStatement
-import io.infinite.supplies.ast.cache.Static
+import io.infinite.supplies.ast.cache.Cache
 import org.apache.commons.lang3.exception.ExceptionUtils
 import org.codehaus.groovy.ast.*
 import org.codehaus.groovy.ast.builder.AstBuilder
@@ -34,8 +34,8 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     CarburetorLevel carburetorLevel
     private static Integer uniqueClosureParamCounter = 0
 
-    @Static
-    final CarburetorConfig carburetorConfig = initCarburetorConfig()
+    @Cache
+    CarburetorConfig carburetorConfig = initCarburetorConfig()
 
     static {
         ASTNode.getMetaClass().origCodeString = null

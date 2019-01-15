@@ -114,7 +114,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             String className = methodNode.getDeclaringClass().getNameWithoutPackage()
             MDC.put("unitName", "CARBURETOR_$className.${methodName.replace("<", "").replace(">", "")}")
             carburetorLevel = getAnnotationParameter("level", carburetorConfig.getLevel(annotationNode.getClassNode().getName())) as CarburetorLevel
-            getAnnotationParameters()
+           getAnnotationParameters()
             transformMethod(methodNode)
             sourceUnit.AST.classes.each {
                 new VariableScopeVisitor(sourceUnit, true).visitClass(it)
@@ -142,7 +142,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         } else {
             throw new CarburetorCompileException(memberExpression, "Unsupported annotation \"$annotationName\" member expression class: " + memberExpression.getClass().getCanonicalName() + " for method " + MDC.get("unitName"), this)
         }
-        log.debug(annotationName + "=" + defaultValue)
+        log.debug(annotationName + "=" + result)
         return result
     }
 

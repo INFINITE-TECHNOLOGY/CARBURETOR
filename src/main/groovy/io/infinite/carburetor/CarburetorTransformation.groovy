@@ -31,7 +31,7 @@ import org.slf4j.MDC
 @Slf4j
 abstract class CarburetorTransformation extends AbstractASTTransformation {
 
-    AnnotationNode annotationNode
+    AnnotationNode annotatationNode
     CarburetorLevel carburetorLevel
     private static Integer uniqueClosureParamCounter = 0
 
@@ -66,11 +66,11 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
 
     abstract Boolean excludeMethodNode(MethodNode methodNode)
 
-    void visitClassNode(ClassNode classNode) {
+    void visitClassNode(ClassNode classNode, AnnotationNode classAnnotationNode) {
         classDeclarations(classNode)
         classNode.methods.each {
             if (!(it.isAbstract() || excludeMethodNode(it))) {
-                visitMethod(it)
+                visitMethod(it, it.getAnnotations(classAnnotationNode.getClassNode())[0] ?: classAnnotationNode)
             }
         }
     }
@@ -80,11 +80,12 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     synchronized void visit(ASTNode[] iAstNodeArray, SourceUnit iSourceUnit) {
         try {
             init(iAstNodeArray, iSourceUnit)
-            annotationNode = iAstNodeArray[0] as AnnotationNode
             if (iAstNodeArray[1] instanceof MethodNode) {
-                visitMethod(iAstNodeArray[1] as MethodNode)
+                AnnotationNode methodAnnotationNode = iAstNodeArray[0] as AnnotationNode
+                visitMethod(iAstNodeArray[1] as MethodNode, methodAnnotationNode)
             } else if (iAstNodeArray[1] instanceof ClassNode) {
-                visitClassNode(iAstNodeArray[1] as ClassNode)
+                AnnotationNode classAnnotationNode = iAstNodeArray[0] as AnnotationNode
+                visitClassNode(iAstNodeArray[1] as ClassNode, classAnnotationNode)
             } else {
                 throw new CompileException(iAstNodeArray[1], "Unsupported Annotated Node; Only [Class, Method, Constructor] are supported.")
             }
@@ -96,7 +97,8 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
 
     abstract void methodDeclarations(MethodNode methodNode)
 
-    void visitMethod(MethodNode methodNode) {
+    void visitMethod(MethodNode methodNode, AnnotationNode methodAnnotationNode) {
+        this.annotatationNode = methodAnnotationNode
         try {
             if (methodNode.transformedBy == this) {
                 return
@@ -114,8 +116,8 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             String methodName = methodNode.getName()
             String className = methodNode.getDeclaringClass().getNameWithoutPackage()
             MDC.put("unitName", "CARBURETOR_$className.${methodName.replace("<", "").replace(">", "")}")
-            carburetorLevel = getAnnotationParameter("level", carburetorConfig.getLevel(annotationNode.getClassNode().getName())) as CarburetorLevel
-           getAnnotationParameters()
+            carburetorLevel = getAnnotationParameter("level", carburetorConfig.getLevel(methodAnnotationNode.getClassNode().getName()), methodAnnotationNode) as CarburetorLevel
+            getAnnotationParameters()
             transformMethod(methodNode)
             sourceUnit.AST.classes.each {
                 new VariableScopeVisitor(sourceUnit, true).visitClass(it)
@@ -130,9 +132,10 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
 
     abstract void getAnnotationParameters()
 
-    Object getAnnotationParameter(String annotationName, Object defaultValue) {
+    Object getAnnotationParameter(String annotationName, Object defaultValue, AnnotationNode annotationNode) {
         Object result
         Expression memberExpression = annotationNode.getMember(annotationName)
+        log.debug(annotationNode.getClassNode().getName() + ":" + annotationNode.getLineNumber())
         if (memberExpression instanceof PropertyExpression) {
             log.debug("PropertyExpression")
             ConstantExpression constantExpression = memberExpression.getProperty() as ConstantExpression
@@ -322,7 +325,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
 
     Statement createThrowStatement() {
         ThrowStatement throwStatement = GeneralUtils.throwS(GeneralUtils.varX("automaticException"))
-        throwStatement.setSourcePosition(annotationNode)
+        throwStatement.setSourcePosition(annotatationNode)
         return throwStatement
     }
 

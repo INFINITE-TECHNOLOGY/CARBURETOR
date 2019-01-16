@@ -77,7 +77,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
 
     abstract void classDeclarations(ClassNode classNode)
 
-    void visit(ASTNode[] iAstNodeArray, SourceUnit iSourceUnit) {
+    synchronized void visit(ASTNode[] iAstNodeArray, SourceUnit iSourceUnit) {
         try {
             init(iAstNodeArray, iSourceUnit)
             annotationNode = iAstNodeArray[0] as AnnotationNode
@@ -134,11 +134,14 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         Object result
         Expression memberExpression = annotationNode.getMember(annotationName)
         if (memberExpression instanceof PropertyExpression) {
+            log.debug("PropertyExpression")
             ConstantExpression constantExpression = memberExpression.getProperty() as ConstantExpression
             result = constantExpression.getValue()
         } else if (memberExpression instanceof ConstantExpression) {
+            log.debug("ConstantExpression")
             result = memberExpression.getValue()
         } else if (memberExpression == null) {
+            log.debug("defaultValue")
             result = defaultValue
         } else {
             throw new CompileException(memberExpression, "Unsupported annotation \"$annotationName\" member expression class: " + memberExpression.getClass().getCanonicalName() + " for method " + MDC.get("unitName"))

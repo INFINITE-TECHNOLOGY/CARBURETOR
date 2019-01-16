@@ -8,6 +8,7 @@ import io.infinite.carburetor.ast.MetaDataExpression
 import io.infinite.carburetor.ast.MetaDataMethodNode
 import io.infinite.carburetor.ast.MetaDataStatement
 import io.infinite.supplies.ast.cache.Cache
+import io.infinite.supplies.ast.exceptions.CompileException
 import org.apache.commons.lang3.exception.ExceptionUtils
 import org.codehaus.groovy.ast.*
 import org.codehaus.groovy.ast.builder.AstBuilder
@@ -85,11 +86,11 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             } else if (iAstNodeArray[1] instanceof ClassNode) {
                 visitClassNode(iAstNodeArray[1] as ClassNode)
             } else {
-                throw new CarburetorCompileException(iAstNodeArray[1], "Unsupported Annotated Node; Only [Class, Method, Constructor] are supported.", this)
+                throw new CompileException(iAstNodeArray[1], "Unsupported Annotated Node; Only [Class, Method, Constructor] are supported.")
             }
         } catch (Exception exception) {
             log.error(ExceptionUtils.getStackTrace(new StackTraceUtils().sanitize(exception)))
-            throw new CarburetorCompileException(iAstNodeArray[1], exception, this)
+            throw new CompileException(iAstNodeArray[1], exception)
         }
     }
 
@@ -101,13 +102,13 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                 return
             }
             if (methodNode.getDeclaringClass().getOuterClass() != null) {
-                throw new CarburetorCompileException(methodNode, "Carburetor currently does not support annotations in Inner Classes.", this)
+                throw new CompileException(methodNode, "Carburetor currently does not support annotations in Inner Classes.")
             }
             if (methodNode.isAbstract()) {
-                throw new CarburetorCompileException(methodNode, "Carburetor does not support annotation of Abstract Methods", this)
+                throw new CompileException(methodNode, "Carburetor does not support annotation of Abstract Methods")
             }
             if (codeString(methodNode.getCode()).contains(getEngineVarName())) {
-                throw new CarburetorCompileException(methodNode, "Duplicate transformation", this)
+                throw new CompileException(methodNode, "Duplicate transformation")
             }
             methodDeclarations(methodNode)
             String methodName = methodNode.getName()
@@ -123,7 +124,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             methodNode.transformedBy = this
         } catch (Exception exception) {
             log.error(ExceptionUtils.getStackTrace(new StackTraceUtils().sanitize(exception)))
-            throw new CarburetorCompileException(methodNode, exception, this)
+            throw new CompileException(methodNode, exception)
         }
     }
 
@@ -140,7 +141,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         } else if (memberExpression == null) {
             result = defaultValue
         } else {
-            throw new CarburetorCompileException(memberExpression, "Unsupported annotation \"$annotationName\" member expression class: " + memberExpression.getClass().getCanonicalName() + " for method " + MDC.get("unitName"), this)
+            throw new CompileException(memberExpression, "Unsupported annotation \"$annotationName\" member expression class: " + memberExpression.getClass().getCanonicalName() + " for method " + MDC.get("unitName"))
         }
         log.debug(annotationName + "=" + result)
         return result
@@ -255,7 +256,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         } else if (carburetorLevel.value() == CarburetorLevel.ERROR.value()) {
             methodErrorLevelTransformation(iMethodNode, firstStatement, engineDeclarationStatement, automaticThisDeclaration, methodExecutionOpen)
         } else {
-            throw new CarburetorCompileException(iMethodNode, "Unsupported Carburetor Level: " + carburetorLevel.toString(), this)
+            throw new CompileException(iMethodNode, "Unsupported Carburetor Level: " + carburetorLevel.toString())
         }
     }
 

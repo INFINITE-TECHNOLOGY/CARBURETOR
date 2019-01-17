@@ -2,10 +2,6 @@ package issues
 
 import io.infinite.carburetor.CarburetorLevel
 import io.infinite.carburetor.TestCarburetor
-import io.infinite.carburetor.TestEngine
-import io.infinite.carburetor.ast.MetaDataExpression
-import io.infinite.carburetor.ast.MetaDataMethodNode
-import io.infinite.carburetor.ast.MetaDataStatement
 
 class IteratorTest3<Type> extends ArrayList<Type> {
 

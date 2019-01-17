@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.inspect.swingui.AstNodeToScriptVisitor
 import groovy.transform.ToString
 import groovy.util.logging.Slf4j
-import io.infinite.carburetor.ast.MetaDataExpression
-import io.infinite.carburetor.ast.MetaDataMethodNode
-import io.infinite.carburetor.ast.MetaDataStatement
+import io.infinite.supplies.ast.metadata.MetaDataExpression
+import io.infinite.supplies.ast.metadata.MetaDataMethodNode
+import io.infinite.supplies.ast.metadata.MetaDataStatement
 import io.infinite.supplies.ast.cache.Cache
 import io.infinite.supplies.ast.exceptions.CompileException
 import org.codehaus.groovy.ast.*

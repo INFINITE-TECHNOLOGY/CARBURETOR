@@ -1,10 +1,10 @@
 package io.infinite.carburetor
 
 import groovy.util.logging.Slf4j
-import io.infinite.carburetor.ast.MetaDataASTNode
-import io.infinite.carburetor.ast.MetaDataExpression
-import io.infinite.carburetor.ast.MetaDataMethodNode
-import io.infinite.carburetor.ast.MetaDataStatement
+import io.infinite.supplies.ast.metadata.MetaDataASTNode
+import io.infinite.supplies.ast.metadata.MetaDataExpression
+import io.infinite.supplies.ast.metadata.MetaDataMethodNode
+import io.infinite.supplies.ast.metadata.MetaDataStatement
 
 import java.lang.reflect.Field
 

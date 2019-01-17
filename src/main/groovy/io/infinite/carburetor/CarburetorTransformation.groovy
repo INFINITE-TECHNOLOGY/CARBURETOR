@@ -9,7 +9,6 @@ import io.infinite.carburetor.ast.MetaDataMethodNode
 import io.infinite.carburetor.ast.MetaDataStatement
 import io.infinite.supplies.ast.cache.Cache
 import io.infinite.supplies.ast.exceptions.CompileException
-import org.apache.commons.lang3.exception.ExceptionUtils
 import org.codehaus.groovy.ast.*
 import org.codehaus.groovy.ast.builder.AstBuilder
 import org.codehaus.groovy.ast.expr.*
@@ -18,7 +17,6 @@ import org.codehaus.groovy.ast.tools.GeneralUtils
 import org.codehaus.groovy.classgen.VariableScopeVisitor
 import org.codehaus.groovy.control.CompilePhase
 import org.codehaus.groovy.control.SourceUnit
-import org.codehaus.groovy.runtime.StackTraceUtils
 import org.codehaus.groovy.transform.AbstractASTTransformation
 import org.codehaus.groovy.transform.GroovyASTTransformation
 import org.codehaus.groovy.transform.sc.ListOfExpressionsExpression
@@ -90,7 +88,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                 throw new CompileException(iAstNodeArray[1], "Unsupported Annotated Node; Only [Class, Method, Constructor] are supported.")
             }
         } catch (Exception exception) {
-            log.error(ExceptionUtils.getStackTrace(new StackTraceUtils().sanitize(exception)))
+            log.error(exception.getMessage(), exception)
             throw new CompileException(iAstNodeArray[1], exception)
         }
     }
@@ -125,7 +123,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             log.debug(codeString(methodNode.getCode()))
             methodNode.transformedBy = this
         } catch (Exception exception) {
-            log.error(ExceptionUtils.getStackTrace(new StackTraceUtils().sanitize(exception)))
+            log.error(exception.getMessage(), exception)
             throw new CompileException(methodNode, exception)
         }
     }

@@ -33,8 +33,8 @@ dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.5.4'
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8'
-    compile "io.infinite:supplies:1.0.1-20190120.090104-15"
-    testCompile "io.infinite:bobbin:2.0.0-20190120.095140-19"
+    compile "io.infinite:supplies:1.0.1-20190122.122623-16"
+    testCompile "io.infinite:bobbin:2.0.0-20190122.123119-23"
     testCompile "junit:junit:4.12"
 }
 task sourceJar(type: Jar) {

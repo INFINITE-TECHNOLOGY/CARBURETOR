@@ -310,7 +310,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                                             GeneralUtils.block(
                                                     methodExecutionOpen,
                                                     logException,
-                                                    new ExpressionStatement(GeneralUtils.callX(GeneralUtils.varX("automaticBlackBox"), "executionClose")),
+                                                    new ExpressionStatement(GeneralUtils.callX(GeneralUtils.varX(getEngineVarName()), "executionClose")),
                                                     createThrowStatement()
                                             )
                                     )

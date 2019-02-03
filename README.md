@@ -1,4 +1,4 @@
-# CARBURETOR
+# Infinite Technology ♾ Carburetor 🌀
 Parameterized Groovy AST proxifying Transformer
 
 |Attribute\Release type|Latest|Stable|

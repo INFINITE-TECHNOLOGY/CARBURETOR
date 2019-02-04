@@ -45,6 +45,11 @@ abstract class CarburetorEngine {
             Map<String, Object> methodArgumentMap
     )
 
+    abstract void methodExecutionException(
+            MetaDataMethodNode metaDataMethodNode,
+            Map<String, Object> methodArgumentMap
+    )
+
     abstract void executionClose()
 
     abstract void handleControlStatement(String controlStatementClassName)

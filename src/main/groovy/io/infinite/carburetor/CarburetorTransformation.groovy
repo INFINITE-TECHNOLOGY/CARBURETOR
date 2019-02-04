@@ -231,10 +231,26 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                 GeneralUtils.varX("this", iMethodNode.getDeclaringClass())
         )
         Statement firstStatement = checkSuperConstructorCall(iMethodNode)
-        Statement methodExecutionOpen = new ExpressionStatement(
+        Statement methodExecutionOpen = createMethodLogStatement("methodExecutionOpen", iMethodNode, argumentMapEntryExpressionList)
+        Statement methodExecutionOpenException = createMethodLogStatement("methodExecutionException", iMethodNode, argumentMapEntryExpressionList)
+        Statement exceptionStatement = new ExpressionStatement(GeneralUtils.callX(GeneralUtils.varX(getEngineVarName()), "exception", GeneralUtils.args(GeneralUtils.varX("automaticException"))))
+        if (carburetorLevel.value() >= CarburetorLevel.STATEMENT.value()) {
+            iMethodNode.getCode().visit(new CarburetorVisitor(this, carburetorLevel))//<<<<<<<<<<<<<<VISIT<<<<<
+            methodStatementLevelTransformation(iMethodNode, firstStatement, engineDeclarationStatement, automaticThisDeclaration, methodExecutionOpen, exceptionStatement, methodExecutionOpenException)
+        } else if (carburetorLevel.value() == CarburetorLevel.METHOD.value()) {
+            methodStatementLevelTransformation(iMethodNode, firstStatement, engineDeclarationStatement, automaticThisDeclaration, methodExecutionOpen, exceptionStatement, methodExecutionOpenException)
+        } else if (carburetorLevel.value() == CarburetorLevel.ERROR.value()) {
+            methodErrorLevelTransformation(iMethodNode, firstStatement, engineDeclarationStatement, automaticThisDeclaration, methodExecutionOpenException)
+        } else {
+            throw new CompileException(iMethodNode, "Unsupported Carburetor Level: " + carburetorLevel.toString())
+        }
+    }
+
+    ExpressionStatement createMethodLogStatement(String methodLogName, MethodNode iMethodNode, ArrayList<MapEntryExpression> argumentMapEntryExpressionList) {
+        return new ExpressionStatement(
                 GeneralUtils.callX(
                         GeneralUtils.varX(getEngineVarName()),
-                        "methodExecutionOpen",
+                        methodLogName,
                         GeneralUtils.args(
                                 GeneralUtils.ctorX(
                                         ClassHelper.make(MetaDataMethodNode.class),
@@ -253,20 +269,9 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                         )
                 )
         )
-        Statement exceptionStatement = new ExpressionStatement(GeneralUtils.callX(GeneralUtils.varX(getEngineVarName()), "exception", GeneralUtils.args(GeneralUtils.varX("automaticException"))))
-        if (carburetorLevel.value() >= CarburetorLevel.STATEMENT.value()) {
-            iMethodNode.getCode().visit(new CarburetorVisitor(this, carburetorLevel))//<<<<<<<<<<<<<<VISIT<<<<<
-            methodStatementLevelTransformation(iMethodNode, firstStatement, engineDeclarationStatement, automaticThisDeclaration, methodExecutionOpen, exceptionStatement)
-        } else if (carburetorLevel.value() == CarburetorLevel.METHOD.value()) {
-            methodStatementLevelTransformation(iMethodNode, firstStatement, engineDeclarationStatement, automaticThisDeclaration, methodExecutionOpen, exceptionStatement)
-        } else if (carburetorLevel.value() == CarburetorLevel.ERROR.value()) {
-            methodErrorLevelTransformation(iMethodNode, firstStatement, engineDeclarationStatement, automaticThisDeclaration, methodExecutionOpen)
-        } else {
-            throw new CompileException(iMethodNode, "Unsupported Carburetor Level: " + carburetorLevel.toString())
-        }
     }
 
-    void methodStatementLevelTransformation(MethodNode iMethodNode, Statement firstStatement, Statement engineDeclarationStatement, Statement automaticThisDeclaration, ExpressionStatement methodExecutionOpen, Statement exceptionStatement) {
+    void methodStatementLevelTransformation(MethodNode iMethodNode, Statement firstStatement, Statement engineDeclarationStatement, Statement automaticThisDeclaration, ExpressionStatement methodExecutionOpen, Statement exceptionStatement, Statement methodExecutionOpenException) {
         iMethodNode.setCode(
                 GeneralUtils.block(
                         firstStatement,
@@ -289,7 +294,14 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                                     new ExpressionStatement(GeneralUtils.callX(GeneralUtils.varX(getEngineVarName()), "executionClose"))
                             )
                             tryCatchStatement.addCatch(
-                                    GeneralUtils.catchS(GeneralUtils.param(ClassHelper.make(Exception.class), "automaticException"), GeneralUtils.block(exceptionStatement, createThrowStatement()))
+                                    GeneralUtils.catchS(
+                                            GeneralUtils.param(ClassHelper.make(Exception.class), "automaticException"),
+                                            GeneralUtils.block(
+                                                    methodExecutionOpenException,
+                                                    exceptionStatement,
+                                                    createThrowStatement()
+                                            )
+                                    )
                             )
                             return tryCatchStatement
                         }.call() as TryCatchStatement

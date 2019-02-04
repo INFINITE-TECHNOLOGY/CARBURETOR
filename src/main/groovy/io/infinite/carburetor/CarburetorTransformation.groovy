@@ -31,6 +31,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
 
     AnnotationNode annotatationNode
     CarburetorLevel carburetorLevel
+    MethodNode methodNode
     private static Integer uniqueClosureParamCounter = 0
 
     @Cache
@@ -97,6 +98,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
 
     void visitMethod(MethodNode methodNode, AnnotationNode methodAnnotationNode) {
         this.annotatationNode = methodAnnotationNode
+        this.methodNode = methodNode
         try {
             if (methodNode.transformedBy == this) {
                 return
@@ -175,11 +177,12 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                                 GeneralUtils.args(
                                         GeneralUtils.constX(expression.getClass().getSimpleName()),
                                         GeneralUtils.constX(expression.origCodeString),
-                                        GeneralUtils.constX(expression.getColumnNumber()),
-                                        GeneralUtils.constX(expression.getLastColumnNumber()),
                                         GeneralUtils.constX(expression.getLineNumber()),
                                         GeneralUtils.constX(expression.getLastLineNumber()),
-                                        GeneralUtils.constX(sourceNodeName)
+                                        GeneralUtils.constX(expression.getColumnNumber()),
+                                        GeneralUtils.constX(expression.getLastColumnNumber()),
+                                        GeneralUtils.constX(methodNode.getName()),
+                                        GeneralUtils.constX(methodNode.getDeclaringClass().getName())
                                 )
                         ),
                         closureExpression,
@@ -236,13 +239,12 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                                 GeneralUtils.ctorX(
                                         ClassHelper.make(MetaDataMethodNode.class),
                                         GeneralUtils.args(
-                                                GeneralUtils.constX(iMethodNode.getDeclaringClass().getNameWithoutPackage()),
-                                                GeneralUtils.constX(iMethodNode.getDeclaringClass().getPackageName()),
-                                                GeneralUtils.constX(iMethodNode.getName()),
+                                                GeneralUtils.constX(iMethodNode.getLineNumber()),
+                                                GeneralUtils.constX(iMethodNode.getLastLineNumber()),
                                                 GeneralUtils.constX(iMethodNode.getColumnNumber()),
                                                 GeneralUtils.constX(iMethodNode.getLastColumnNumber()),
-                                                GeneralUtils.constX(iMethodNode.getLineNumber()),
-                                                GeneralUtils.constX(iMethodNode.getLastLineNumber())
+                                                GeneralUtils.constX(iMethodNode.getDeclaringClass().getName()),
+                                                GeneralUtils.constX(iMethodNode.getName())
                                         )
                                 ),
                                 new MapExpression(
@@ -362,12 +364,12 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                                 ClassHelper.make(MetaDataStatement.class),
                                 GeneralUtils.args(
                                         GeneralUtils.constX(statement.getClass().getSimpleName()),
-                                        GeneralUtils.constX(statement.origCodeString),
-                                        GeneralUtils.constX(statement.getColumnNumber()),
-                                        GeneralUtils.constX(statement.getLastColumnNumber()),
                                         GeneralUtils.constX(statement.getLineNumber()),
                                         GeneralUtils.constX(statement.getLastLineNumber()),
-                                        GeneralUtils.constX(sourceNodeName)
+                                        GeneralUtils.constX(statement.getColumnNumber()),
+                                        GeneralUtils.constX(statement.getLastColumnNumber()),
+                                        GeneralUtils.constX(methodNode.getName()),
+                                        GeneralUtils.constX(methodNode.getDeclaringClass().getName())
                                 )
                         )
                 )
@@ -399,12 +401,12 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                                 ClassHelper.make(MetaDataStatement.class),
                                 GeneralUtils.args(
                                         GeneralUtils.constX(statement.getClass().getSimpleName()),
-                                        GeneralUtils.constX(statement.origCodeString),
-                                        GeneralUtils.constX(statement.getColumnNumber()),
-                                        GeneralUtils.constX(statement.getLastColumnNumber()),
                                         GeneralUtils.constX(statement.getLineNumber()),
                                         GeneralUtils.constX(statement.getLastLineNumber()),
-                                        GeneralUtils.constX(sourceNodeName)
+                                        GeneralUtils.constX(statement.getColumnNumber()),
+                                        GeneralUtils.constX(statement.getLastColumnNumber()),
+                                        GeneralUtils.constX(methodNode.getName()),
+                                        GeneralUtils.constX(methodNode.getDeclaringClass().getName())
                                 )
                         )
                 )
@@ -428,11 +430,12 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                                 GeneralUtils.args(
                                         GeneralUtils.constX(declarationExpression.getClass().getSimpleName()),
                                         GeneralUtils.constX(declarationExpression.origCodeString),
-                                        GeneralUtils.constX(declarationExpression.getColumnNumber()),
-                                        GeneralUtils.constX(declarationExpression.getLastColumnNumber()),
                                         GeneralUtils.constX(declarationExpression.getLineNumber()),
                                         GeneralUtils.constX(declarationExpression.getLastLineNumber()),
-                                        GeneralUtils.constX(sourceNodeName)
+                                        GeneralUtils.constX(declarationExpression.getColumnNumber()),
+                                        GeneralUtils.constX(declarationExpression.getLastColumnNumber()),
+                                        GeneralUtils.constX(methodNode.getName()),
+                                        GeneralUtils.constX(methodNode.getDeclaringClass().getName())
                                 )
                         )
                 )

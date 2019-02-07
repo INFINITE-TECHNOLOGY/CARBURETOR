@@ -95,7 +95,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     abstract void methodDeclarations(MethodNode methodNode)
 
     void visitMethod(MethodNode methodNode, AnnotationNode methodAnnotationNode) {
-        if (!(methodNode.isAbstract() || excludeMethodNode(methodNode))) {
+        if (methodNode.isAbstract() || excludeMethodNode(methodNode)) {
             return
         }
         this.annotatationNode = methodAnnotationNode

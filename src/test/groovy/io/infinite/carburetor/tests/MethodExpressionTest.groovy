@@ -1,7 +1,7 @@
 package io.infinite.carburetor.tests
 
 
-class MethodLevelTest extends GroovyTestCase {
+class MethodExpressionTest extends GroovyTestCase {
 
 
     void test() {
@@ -10,7 +10,7 @@ import io.infinite.carburetor.CarburetorLevel
 
 class MethodLevel {
 
-    @TestCarburetor(level = CarburetorLevel.METHOD)
+    @TestCarburetor(level = CarburetorLevel.EXPRESSION)
     def test(String arg1) {
         println "OK"
     }

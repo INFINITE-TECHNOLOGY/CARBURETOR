@@ -4,11 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import groovy.inspect.swingui.AstNodeToScriptVisitor
 import groovy.transform.ToString
 import groovy.util.logging.Slf4j
+import io.infinite.supplies.ast.cache.Cache
+import io.infinite.supplies.ast.exceptions.CompileException
 import io.infinite.supplies.ast.metadata.MetaDataExpression
 import io.infinite.supplies.ast.metadata.MetaDataMethodNode
 import io.infinite.supplies.ast.metadata.MetaDataStatement
-import io.infinite.supplies.ast.cache.Cache
-import io.infinite.supplies.ast.exceptions.CompileException
 import org.codehaus.groovy.ast.*
 import org.codehaus.groovy.ast.builder.AstBuilder
 import org.codehaus.groovy.ast.expr.*
@@ -68,9 +68,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     void visitClassNode(ClassNode classNode, AnnotationNode classAnnotationNode) {
         classDeclarations(classNode)
         classNode.methods.each {
-            if (!(it.isAbstract() || excludeMethodNode(it))) {
-                visitMethod(it, it.getAnnotations(classAnnotationNode.getClassNode())[0] ?: classAnnotationNode)
-            }
+            visitMethod(it, it.getAnnotations(classAnnotationNode.getClassNode())[0] ?: classAnnotationNode)
         }
     }
 
@@ -97,6 +95,9 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     abstract void methodDeclarations(MethodNode methodNode)
 
     void visitMethod(MethodNode methodNode, AnnotationNode methodAnnotationNode) {
+        if (!(methodNode.isAbstract() || excludeMethodNode(methodNode))) {
+            return
+        }
         this.annotatationNode = methodAnnotationNode
         this.methodNode = methodNode
         try {

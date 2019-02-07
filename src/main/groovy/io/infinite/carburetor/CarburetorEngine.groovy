@@ -1,5 +1,6 @@
 package io.infinite.carburetor
 
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import io.infinite.supplies.ast.metadata.MetaDataASTNode
 import io.infinite.supplies.ast.metadata.MetaDataExpression
@@ -9,6 +10,7 @@ import io.infinite.supplies.ast.metadata.MetaDataStatement
 import java.lang.reflect.Field
 
 @Slf4j
+@CompileStatic
 abstract class CarburetorEngine {
 
     abstract void expressionExecutionOpen(MetaDataExpression metaDataExpression)

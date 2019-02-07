@@ -1,5 +1,8 @@
 package io.infinite.carburetor
 
+import groovy.transform.CompileStatic
+
+@CompileStatic
 class CarburetorConfig {
 
     Map<String, String> levelsByImplementingClass = [:]

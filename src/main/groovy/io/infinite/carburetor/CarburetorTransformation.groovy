@@ -107,9 +107,6 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             if (methodNode.getDeclaringClass().getOuterClass() != null) {
                 throw new CompileException(methodNode, "Carburetor currently does not support annotations in Inner Classes.")
             }
-            if (methodNode.isAbstract()) {
-                throw new CompileException(methodNode, "Carburetor does not support annotation of Abstract Methods")
-            }
             if (codeString(methodNode.getCode()).contains(getEngineVarName())) {
                 throw new CompileException(methodNode, "Duplicate transformation")
             }

@@ -40,7 +40,7 @@ catch (java.lang.Exception automaticException) {
     throw automaticException 
 } 
 finally { 
-    testEngine.executionClose()} 
+    testEngine.methodEnd(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(10, 13, 5, 6, 'Foo', 'test'))} 
 """
 
 }

@@ -6,6 +6,7 @@ import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 import io.infinite.supplies.ast.cache.Cache
 import io.infinite.supplies.ast.exceptions.CompileException
+import io.infinite.supplies.ast.metadata.MetaDataASTNode
 import io.infinite.supplies.ast.metadata.MetaDataExpression
 import io.infinite.supplies.ast.metadata.MetaDataMethodNode
 import io.infinite.supplies.ast.metadata.MetaDataStatement
@@ -114,6 +115,10 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
 
     String getThisClassVarName() {
         "thisClass"
+    }
+
+    String getMethodEndName() {
+        "methodEnd"
     }
 
     abstract Class getEngineFactoryClass()
@@ -289,19 +294,9 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         }
     }
 
-    ExpressionStatement createMethodLogStatement(String methodLogName, MethodNode iMethodNode, ArrayList<MapEntryExpression> argumentMapEntryExpressionList, Expression... additionalArgs) {
+    ExpressionStatement createMethodLogStatement(String methodLogName, MethodNode methodNode, ArrayList<MapEntryExpression> argumentMapEntryExpressionList, Expression... additionalArgs) {
         def args = GeneralUtils.args(
-                GeneralUtils.ctorX(
-                        ClassHelper.make(MetaDataMethodNode.class),
-                        GeneralUtils.args(
-                                GeneralUtils.constX(iMethodNode.getLineNumber()),
-                                GeneralUtils.constX(iMethodNode.getLastLineNumber()),
-                                GeneralUtils.constX(iMethodNode.getColumnNumber()),
-                                GeneralUtils.constX(iMethodNode.getLastColumnNumber()),
-                                GeneralUtils.constX(iMethodNode.getDeclaringClass().getName()),
-                                GeneralUtils.constX(iMethodNode.getName())
-                        )
-                ),
+                metaDataMethodNode(methodNode),
                 new MapExpression(
                         argumentMapEntryExpressionList
                 )
@@ -316,6 +311,20 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                         GeneralUtils.varX(getEngineVarName()),
                         methodLogName,
                         args
+                )
+        )
+    }
+
+    ConstructorCallExpression metaDataMethodNode(MethodNode methodNode) {
+        return GeneralUtils.ctorX(
+                ClassHelper.make(MetaDataMethodNode.class),
+                GeneralUtils.args(
+                        GeneralUtils.constX(methodNode.getLineNumber()),
+                        GeneralUtils.constX(methodNode.getLastLineNumber()),
+                        GeneralUtils.constX(methodNode.getColumnNumber()),
+                        GeneralUtils.constX(methodNode.getLastColumnNumber()),
+                        GeneralUtils.constX(methodNode.getDeclaringClass().getName()),
+                        GeneralUtils.constX(methodNode.getName())
                 )
         )
     }
@@ -338,7 +347,13 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                                             ))
                                         }
                                     }.call() as Statement,
-                                    new ExpressionStatement(GeneralUtils.callX(GeneralUtils.varX(getEngineVarName()), "executionClose"))
+                                    new ExpressionStatement(
+                                            GeneralUtils.callX(
+                                                    GeneralUtils.varX(getEngineVarName()),
+                                                    getMethodEndName(),
+                                                    GeneralUtils.args(metaDataMethodNode(methodNode))
+                                            )
+                                    )
                             )
                             tryCatchStatement.addCatch(
                                     GeneralUtils.catchS(

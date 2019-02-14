@@ -53,6 +53,10 @@ abstract class CarburetorEngine {
             Map<String, Object> methodArgumentMap
     )
 
+    abstract void methodEnd(
+            MetaDataMethodNode metaDataMethodNode
+    )
+
     abstract void methodException(
             MetaDataMethodNode metaDataMethodNode,
             Map<String, Object> methodArgumentMap,

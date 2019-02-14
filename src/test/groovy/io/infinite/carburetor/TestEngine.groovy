@@ -39,6 +39,11 @@ class TestEngine extends CarburetorEngine {
     }
 
     @Override
+    void methodEnd(MetaDataMethodNode metaDataMethodNode) {
+
+    }
+
+    @Override
     void methodException(MetaDataMethodNode metaDataMethodNode, Map<String, Object> methodArgumentMap, Exception exception) {
 
     }

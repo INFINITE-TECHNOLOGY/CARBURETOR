@@ -412,28 +412,38 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         BlockStatement blockStatement = GeneralUtils.block(new VariableScope())
         blockStatement.addStatement(new ExpressionStatement(GeneralUtils.callX(
                 GeneralUtils.varX(getEngineVarName()),
-                "statementExecutionOpen",
+                "statementStart",
                 GeneralUtils.args(
-                        GeneralUtils.ctorX(
-                                ClassHelper.make(MetaDataStatement.class),
-                                GeneralUtils.args(
-                                        GeneralUtils.constX(statement.getClass().getSimpleName()),
-                                        GeneralUtils.constX(statement.getLineNumber()),
-                                        GeneralUtils.constX(statement.getLastLineNumber()),
-                                        GeneralUtils.constX(statement.getColumnNumber()),
-                                        GeneralUtils.constX(statement.getLastColumnNumber()),
-                                        GeneralUtils.constX(methodNode.getName()),
-                                        GeneralUtils.constX(methodNode.getDeclaringClass().getName())
-                                )
-                        )
+                        metaDataStatement(statement)
                 )
         )))
         blockStatement.addStatement(statement)
-        blockStatement.addStatement(text2statement("${getEngineVarName()}.executionClose()"))
+        blockStatement.addStatement(new ExpressionStatement(GeneralUtils.callX(
+                GeneralUtils.varX(getEngineVarName()),
+                "statementEnd",
+                GeneralUtils.args(
+                        metaDataStatement(statement)
+                )
+        )))
         blockStatement.copyNodeMetaData(statement)
         blockStatement.setSourcePosition(statement)
         blockStatement.transformedBy = this
         return blockStatement
+    }
+
+    ConstructorCallExpression metaDataStatement(Statement statement) {
+        return GeneralUtils.ctorX(
+                ClassHelper.make(MetaDataStatement.class),
+                GeneralUtils.args(
+                        GeneralUtils.constX(statement.getClass().getSimpleName()),
+                        GeneralUtils.constX(statement.getLineNumber()),
+                        GeneralUtils.constX(statement.getLastLineNumber()),
+                        GeneralUtils.constX(statement.getColumnNumber()),
+                        GeneralUtils.constX(statement.getLastColumnNumber()),
+                        GeneralUtils.constX(methodNode.getName()),
+                        GeneralUtils.constX(methodNode.getDeclaringClass().getName())
+                )
+        )
     }
 
     ListOfExpressionsExpression transformDeclarationExpression(DeclarationExpression declarationExpression, String sourceNodeName) {

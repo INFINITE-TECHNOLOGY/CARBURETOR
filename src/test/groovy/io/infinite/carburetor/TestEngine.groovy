@@ -19,17 +19,22 @@ class TestEngine extends CarburetorEngine {
     }
 
     @Override
-    def handleExpressionEvaluationResult(Object expressionEvaluationResult) {
+    def handleExpressionResult(Object expressionEvaluationResult) {
         return null
     }
 
     @Override
-    Exception carburetorRuntimeExceptionHandle(Exception exception, MetaDataASTNode metaDataASTNode) {
+    Exception handleException(Exception exception, MetaDataASTNode metaDataASTNode) {
         return new CarburetorRuntimeException(metaDataASTNode, exception)
     }
 
     @Override
-    void statementExecutionOpen(MetaDataStatement metaDataStatement) {
+    void statementStart(MetaDataStatement metaDataStatement) {
+
+    }
+
+    @Override
+    void statementEnd(MetaDataStatement metaDataStatement) {
 
     }
 

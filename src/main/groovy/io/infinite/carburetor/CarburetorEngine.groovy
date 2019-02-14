@@ -19,7 +19,7 @@ abstract class CarburetorEngine {
 
     abstract void expressionExecutionOpen(MetaDataExpression metaDataExpression)
 
-    abstract handleExpressionEvaluationResult(Object expressionEvaluationResult)
+    abstract handleExpressionResult(Object expressionEvaluationResult)
 
     ASTUtils astUtils = new ASTUtils()
 
@@ -35,18 +35,20 @@ abstract class CarburetorEngine {
             try {
                 evaluationResult = expressionClosure.call()
             } catch (Exception exception) {
-                throw carburetorRuntimeExceptionHandle(exception, metaDataExpression)
+                throw handleException(exception, metaDataExpression)
             }
-            handleExpressionEvaluationResult(evaluationResult)
+            handleExpressionResult(evaluationResult)
             return evaluationResult
         } finally {
             executionClose()
         }
     }
 
-    abstract Exception carburetorRuntimeExceptionHandle(Exception exception, MetaDataASTNode metaDataASTNode)
+    abstract Exception handleException(Exception exception, MetaDataASTNode metaDataASTNode)
 
-    abstract void statementExecutionOpen(MetaDataStatement metaDataStatement)
+    abstract void statementStart(MetaDataStatement metaDataStatement)
+
+    abstract void statementEnd(MetaDataStatement metaDataStatement)
 
     abstract void methodStart(
             MetaDataMethodNode metaDataMethodNode,
@@ -68,7 +70,7 @@ abstract class CarburetorEngine {
     abstract void handleControlStatement(String controlStatementClassName)
 
     final void preprocessControlStatement(MetaDataStatement metaDataStatement) {
-        statementExecutionOpen(metaDataStatement)
+        statementStart(metaDataStatement)
         executionClose()
         handleControlStatement(metaDataStatement.getStatementClassName())
     }

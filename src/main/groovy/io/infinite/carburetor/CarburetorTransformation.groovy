@@ -33,6 +33,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     CarburetorLevel carburetorLevel
     MethodNode methodNode
     private static Integer uniqueClosureParamCounter = 0
+    static String lastCode
 
     @Cache
     CarburetorConfig carburetorConfig = initCarburetorConfig()
@@ -98,6 +99,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         if (methodNode.isAbstract() || excludeMethodNode(methodNode)) {
             return
         }
+        uniqueClosureParamCounter = 0
         this.annotatationNode = methodAnnotationNode
         this.methodNode = methodNode
         try {
@@ -120,7 +122,8 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             sourceUnit.AST.classes.each {
                 new VariableScopeVisitor(sourceUnit, true).visitClass(it)
             }
-            log.debug(codeString(methodNode.getCode()))
+            lastCode = codeString(methodNode.getCode())
+            log.debug(lastCode)
             methodNode.transformedBy = this
         } catch (Exception exception) {
             log.error(exception.getMessage(), exception)

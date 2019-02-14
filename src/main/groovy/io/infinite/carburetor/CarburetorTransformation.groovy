@@ -98,6 +98,14 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         }
         optionalDeclarations(classNode)
     }
+
+    String getThisVarNameBasedOnContext() {
+        if (methodNode.isStatic()) {
+            return getThisClassVarName()
+        } else {
+            return getThisInstanceVarName()
+        }
+    }
     
     String getThisInstanceVarName() {
         "thisInstance"
@@ -228,7 +236,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                                 )
                         ),
                         closureExpression,
-                        GeneralUtils.varX(getThisInstanceVarName())
+                        GeneralUtils.varX(getThisVarNameBasedOnContext())
                 )
         )
         methodCallExpression.copyNodeMetaData(expression)
@@ -320,7 +328,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                                             return new ExpressionStatement(GeneralUtils.callX(
                                                     GeneralUtils.varX(getEngineVarName()),
                                                     "executeMethod",
-                                                    GeneralUtils.args(wrapStatementIntoClosure(iMethodNode.getCode()), GeneralUtils.varX(getThisInstanceVarName()))
+                                                    GeneralUtils.args(wrapStatementIntoClosure(iMethodNode.getCode()), GeneralUtils.varX(getThisVarNameBasedOnContext()))
                                             ))
                                         }
                                     }.call() as Statement,

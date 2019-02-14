@@ -448,36 +448,43 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
 
     ListOfExpressionsExpression transformDeclarationExpression(DeclarationExpression declarationExpression, String sourceNodeName) {
         ListOfExpressionsExpression listOfExpressionsExpression = new ListOfExpressionsExpression()
-        MethodCallExpression expressionExecutionOpenMethodCallExpression = GeneralUtils.callX(
+        MethodCallExpression expressionStart = GeneralUtils.callX(
                 GeneralUtils.varX(getEngineVarName()),
-                "expressionExecutionOpen",
+                "expressionStart",
                 GeneralUtils.args(
-                        GeneralUtils.ctorX(
-                                ClassHelper.make(MetaDataExpression.class),
-                                GeneralUtils.args(
-                                        GeneralUtils.constX(declarationExpression.getClass().getSimpleName()),
-                                        GeneralUtils.constX(declarationExpression.origCodeString),
-                                        GeneralUtils.constX(declarationExpression.getLineNumber()),
-                                        GeneralUtils.constX(declarationExpression.getLastLineNumber()),
-                                        GeneralUtils.constX(declarationExpression.getColumnNumber()),
-                                        GeneralUtils.constX(declarationExpression.getLastColumnNumber()),
-                                        GeneralUtils.constX(methodNode.getName()),
-                                        GeneralUtils.constX(methodNode.getDeclaringClass().getName())
-                                )
-                        )
+                        metaDataExpression(declarationExpression)
                 )
         )
-        MethodCallExpression expressionExecutionCloseMethodCallExpression = GeneralUtils.callX(
+        MethodCallExpression expressionEnd = GeneralUtils.callX(
                 GeneralUtils.varX(getEngineVarName()),
-                "executionClose"
+                "expressionEnd",
+                GeneralUtils.args(
+                        metaDataExpression(declarationExpression)
+                )
         )
-        listOfExpressionsExpression.addExpression(expressionExecutionOpenMethodCallExpression)
+        listOfExpressionsExpression.addExpression(expressionStart)
         listOfExpressionsExpression.addExpression(declarationExpression)
-        listOfExpressionsExpression.addExpression(expressionExecutionCloseMethodCallExpression)
+        listOfExpressionsExpression.addExpression(expressionEnd)
         listOfExpressionsExpression.copyNodeMetaData(declarationExpression)
         listOfExpressionsExpression.setSourcePosition(declarationExpression)
         listOfExpressionsExpression.transformedBy = this
         return listOfExpressionsExpression
+    }
+
+    ConstructorCallExpression metaDataExpression(Expression expression) {
+        GeneralUtils.ctorX(
+                ClassHelper.make(MetaDataExpression.class),
+                GeneralUtils.args(
+                        GeneralUtils.constX(expression.getClass().getSimpleName()),
+                        GeneralUtils.constX(expression.origCodeString),
+                        GeneralUtils.constX(expression.getLineNumber()),
+                        GeneralUtils.constX(expression.getLastLineNumber()),
+                        GeneralUtils.constX(expression.getColumnNumber()),
+                        GeneralUtils.constX(expression.getLastColumnNumber()),
+                        GeneralUtils.constX(methodNode.getName()),
+                        GeneralUtils.constX(methodNode.getDeclaringClass().getName())
+                )
+        )
     }
 
     Expression transformExpression(Expression expression, String sourceNodeName) {

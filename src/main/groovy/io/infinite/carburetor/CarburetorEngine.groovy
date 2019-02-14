@@ -17,7 +17,9 @@ import io.infinite.supplies.ast.other.ASTUtils
  */
 abstract class CarburetorEngine {
 
-    abstract void expressionExecutionOpen(MetaDataExpression metaDataExpression)
+    abstract void expressionStart(MetaDataExpression metaDataExpression)
+
+    abstract void expressionEnd(MetaDataExpression metaDataExpression)
 
     abstract handleExpressionResult(Object expressionEvaluationResult)
 
@@ -28,7 +30,7 @@ abstract class CarburetorEngine {
             Closure expressionClosure,
             Object automaticThis
     ) {
-        expressionExecutionOpen(metaDataExpression)
+        expressionStart(metaDataExpression)
         try {
             astUtils.ensureClosureEquivalency(expressionClosure, automaticThis)
             Object evaluationResult
@@ -40,7 +42,7 @@ abstract class CarburetorEngine {
             handleExpressionResult(evaluationResult)
             return evaluationResult
         } finally {
-            executionClose()
+            expressionEnd(metaDataExpression)
         }
     }
 
@@ -65,13 +67,11 @@ abstract class CarburetorEngine {
             Exception exception
     )
 
-    abstract void executionClose()
-
     abstract void handleControlStatement(String controlStatementClassName)
 
     final void preprocessControlStatement(MetaDataStatement metaDataStatement) {
         statementStart(metaDataStatement)
-        executionClose()
+        statementEnd(metaDataStatement)
         handleControlStatement(metaDataStatement.getStatementClassName())
     }
 

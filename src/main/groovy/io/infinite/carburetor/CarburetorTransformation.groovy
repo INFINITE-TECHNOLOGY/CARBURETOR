@@ -6,7 +6,6 @@ import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 import io.infinite.supplies.ast.cache.Cache
 import io.infinite.supplies.ast.exceptions.CompileException
-import io.infinite.supplies.ast.metadata.MetaDataASTNode
 import io.infinite.supplies.ast.metadata.MetaDataExpression
 import io.infinite.supplies.ast.metadata.MetaDataMethodNode
 import io.infinite.supplies.ast.metadata.MetaDataStatement
@@ -46,28 +45,33 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         ClassNode.getMetaClass().mandatoryDeclarationsDone = null
     }
 
-    void report(String msg) {
-        log.info("Carburator: " + Thread.currentThread().getName() + ": " + msg)
-    }
-
-    CarburetorConfig initCarburetorConfig() {
-        CarburetorConfig carburetorConfig
-        MDC.put("unitName", "CARBURETOR_INIT")
-        if (new File("./Carburetor.json").exists()) {
-            carburetorConfig = new ObjectMapper().readValue(new File("./Carburetor.json").getText(), CarburetorConfig.class)
-            report("Global level: " + carburetorConfig.getDefaultLevel())
-            report("Levels by transformation implementation: " + carburetorConfig.getLevelsByImplementingClass().toString())
-            report("Transformation implementation: " + getClass().getCanonicalName())
-            report("Level by transformation implementation: " + carburetorConfig.getLevelsByImplementingClass().get(getClass().getCanonicalName()))
-        } else {
-            carburetorConfig = new CarburetorConfig()
-            report("Carburetor.json not found at " + new File("./").getCanonicalPath())
-            report("Using default level: " + carburetorConfig.getDefaultLevel())
-        }
-        return carburetorConfig
-    }
-
+    abstract String getEngineVarName()
     abstract Boolean excludeMethodNode(MethodNode methodNode)
+    abstract void optionalDeclarations(ClassNode classNode)
+    abstract Class getEngineFactoryClass()
+    abstract Expression getEngineInitArgs()
+    abstract void methodDeclarations(MethodNode methodNode)
+    abstract void getAnnotationParameters()
+
+    // MAIN ENTRY POINT \/\/\/\/\/\/\/\/
+    synchronized void visit(ASTNode[] iAstNodeArray, SourceUnit iSourceUnit) {
+        try {
+            init(iAstNodeArray, iSourceUnit)
+            if (iAstNodeArray[1] instanceof MethodNode) {
+                AnnotationNode methodAnnotationNode = iAstNodeArray[0] as AnnotationNode
+                visitMethod(iAstNodeArray[1] as MethodNode, methodAnnotationNode)
+            } else if (iAstNodeArray[1] instanceof ClassNode) {
+                AnnotationNode classAnnotationNode = iAstNodeArray[0] as AnnotationNode
+                visitClassNode(iAstNodeArray[1] as ClassNode, classAnnotationNode)
+            } else {
+                throw new CompileException(iAstNodeArray[1], "Unsupported Annotated Node; Only [Class, Method, Constructor] are supported.")
+            }
+        } catch (Exception exception) {
+            log.error(exception.getMessage(), exception)
+            throw new CompileException(iAstNodeArray[1], exception)
+        }
+    }
+    // MAIN ENTRY POINT /\/\/\/\/\/\/\/\
 
     void visitClassNode(ClassNode classNode, AnnotationNode classAnnotationNode) {
         classNode.methods.each {
@@ -75,7 +79,42 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         }
     }
 
-    abstract void optionalDeclarations(ClassNode classNode)
+    void visitMethod(MethodNode methodNode, AnnotationNode methodAnnotationNode) {
+        if (methodNode.isAbstract() || excludeMethodNode(methodNode)) {
+            return
+        }
+        mandatoryClassDeclarations(methodNode.getDeclaringClass())
+        uniqueClosureParamCounter = 0
+        this.annotatationNode = methodAnnotationNode
+        this.methodNode = methodNode
+        try {
+            if (methodNode.transformedBy == this) {
+                return
+            }
+            if (methodNode.getDeclaringClass().getOuterClass() != null) {
+                throw new CompileException(methodNode, "Carburetor currently does not support annotations in Inner Classes.")
+            }
+            if (codeString(methodNode.getCode()).contains(getEngineVarName())) {
+                throw new CompileException(methodNode, "Duplicate transformation")
+            }
+            methodDeclarations(methodNode)
+            String methodName = methodNode.getName()
+            String className = methodNode.getDeclaringClass().getNameWithoutPackage()
+            MDC.put("unitName", "CARBURETOR_$className.${methodName.replace("<", "").replace(">", "")}")
+            carburetorLevel = getAnnotationParameter("level", carburetorConfig.getLevel(methodAnnotationNode.getClassNode().getName()), methodAnnotationNode) as CarburetorLevel
+            getAnnotationParameters()
+            transformMethod(methodNode)
+            sourceUnit.AST.classes.each {
+                new VariableScopeVisitor(sourceUnit, true).visitClass(it)
+            }
+            lastCode = codeString(methodNode.getCode())
+            log.debug(lastCode)
+            methodNode.transformedBy = this
+        } catch (Exception exception) {
+            log.error(exception.getMessage(), exception)
+            throw new CompileException(methodNode, exception)
+        }
+    }
 
     void mandatoryClassDeclarations(ClassNode classNode) {
         ClassNode classNodeType = classNode.getPlainNodeReference()
@@ -121,72 +160,9 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         "methodEnd"
     }
 
-    abstract Class getEngineFactoryClass()
-
-    abstract Expression getEngineInitArgs()
-
     String getEngineFactoryMethodName() {
-        return "getInstance"
+        "getInstance"
     }
-
-    synchronized void visit(ASTNode[] iAstNodeArray, SourceUnit iSourceUnit) {
-        try {
-            init(iAstNodeArray, iSourceUnit)
-            if (iAstNodeArray[1] instanceof MethodNode) {
-                AnnotationNode methodAnnotationNode = iAstNodeArray[0] as AnnotationNode
-                visitMethod(iAstNodeArray[1] as MethodNode, methodAnnotationNode)
-            } else if (iAstNodeArray[1] instanceof ClassNode) {
-                AnnotationNode classAnnotationNode = iAstNodeArray[0] as AnnotationNode
-                visitClassNode(iAstNodeArray[1] as ClassNode, classAnnotationNode)
-            } else {
-                throw new CompileException(iAstNodeArray[1], "Unsupported Annotated Node; Only [Class, Method, Constructor] are supported.")
-            }
-        } catch (Exception exception) {
-            log.error(exception.getMessage(), exception)
-            throw new CompileException(iAstNodeArray[1], exception)
-        }
-    }
-
-    abstract void methodDeclarations(MethodNode methodNode)
-
-    void visitMethod(MethodNode methodNode, AnnotationNode methodAnnotationNode) {
-        if (methodNode.isAbstract() || excludeMethodNode(methodNode)) {
-            return
-        }
-        mandatoryClassDeclarations(methodNode.getDeclaringClass())
-        uniqueClosureParamCounter = 0
-        this.annotatationNode = methodAnnotationNode
-        this.methodNode = methodNode
-        try {
-            if (methodNode.transformedBy == this) {
-                return
-            }
-            if (methodNode.getDeclaringClass().getOuterClass() != null) {
-                throw new CompileException(methodNode, "Carburetor currently does not support annotations in Inner Classes.")
-            }
-            if (codeString(methodNode.getCode()).contains(getEngineVarName())) {
-                throw new CompileException(methodNode, "Duplicate transformation")
-            }
-            methodDeclarations(methodNode)
-            String methodName = methodNode.getName()
-            String className = methodNode.getDeclaringClass().getNameWithoutPackage()
-            MDC.put("unitName", "CARBURETOR_$className.${methodName.replace("<", "").replace(">", "")}")
-            carburetorLevel = getAnnotationParameter("level", carburetorConfig.getLevel(methodAnnotationNode.getClassNode().getName()), methodAnnotationNode) as CarburetorLevel
-            getAnnotationParameters()
-            transformMethod(methodNode)
-            sourceUnit.AST.classes.each {
-                new VariableScopeVisitor(sourceUnit, true).visitClass(it)
-            }
-            lastCode = codeString(methodNode.getCode())
-            log.debug(lastCode)
-            methodNode.transformedBy = this
-        } catch (Exception exception) {
-            log.error(exception.getMessage(), exception)
-            throw new CompileException(methodNode, exception)
-        }
-    }
-
-    abstract void getAnnotationParameters()
 
     Object getAnnotationParameter(String annotationName, Object defaultValue, AnnotationNode annotationNode) {
         Object result
@@ -266,8 +242,6 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         }
         return firstStatement
     }
-
-    abstract String getEngineVarName()
 
     void transformMethod(MethodNode iMethodNode) {
         if (carburetorLevel.value() == CarburetorLevel.NONE.value()) {
@@ -395,31 +369,6 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         ThrowStatement throwStatement = GeneralUtils.throwS(GeneralUtils.varX("automaticException"))
         throwStatement.setSourcePosition(annotatationNode)
         return throwStatement
-    }
-
-    Statement text2statement(String iCodeText) {
-        List<ASTNode> resultingStatements = new AstBuilder().buildFromString(CompilePhase.SEMANTIC_ANALYSIS, true, iCodeText.replace("\$", "\\\$"))
-        return resultingStatements.first() as Statement
-    }
-
-    String codeString(ASTNode iAstNode) {
-        StringWriter stringWriter = new StringWriter()
-        iAstNode.visit(new AstNodeToScriptVisitor(stringWriter))
-        return stringWriter.getBuffer().toString()
-    }
-
-    final Boolean methodArgumentsPresent(Object iArgs) {
-        if (iArgs != null) {
-            if (iArgs instanceof Collection) {
-                return iArgs.size() > 0
-            } else if (iArgs instanceof Object[]) {
-                return iArgs.length > 0
-            } else {
-                return false
-            }
-        } else {
-            return false
-        }
     }
 
     BlockStatement transformControlStatement(Statement statement, String sourceNodeName) {
@@ -591,6 +540,53 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         transformedExpression.copyNodeMetaData(expression)
         transformedExpression.setSourcePosition(expression)
         return wrapExpressionIntoMethodCallExpression(transformedExpression, sourceNodeName)
+    }
+
+    // Utils \/\/\/\/\/\/
+    CarburetorConfig initCarburetorConfig() {
+        CarburetorConfig carburetorConfig
+        MDC.put("unitName", "CARBURETOR_INIT")
+        if (new File("./Carburetor.json").exists()) {
+            carburetorConfig = new ObjectMapper().readValue(new File("./Carburetor.json").getText(), CarburetorConfig.class)
+            report("Global level: " + carburetorConfig.getDefaultLevel())
+            report("Levels by transformation implementation: " + carburetorConfig.getLevelsByImplementingClass().toString())
+            report("Transformation implementation: " + getClass().getCanonicalName())
+            report("Level by transformation implementation: " + carburetorConfig.getLevelsByImplementingClass().get(getClass().getCanonicalName()))
+        } else {
+            carburetorConfig = new CarburetorConfig()
+            report("Carburetor.json not found at " + new File("./").getCanonicalPath())
+            report("Using default level: " + carburetorConfig.getDefaultLevel())
+        }
+        return carburetorConfig
+    }
+
+    Statement text2statement(String iCodeText) {
+        List<ASTNode> resultingStatements = new AstBuilder().buildFromString(CompilePhase.SEMANTIC_ANALYSIS, true, iCodeText.replace("\$", "\\\$"))
+        return resultingStatements.first() as Statement
+    }
+
+    String codeString(ASTNode iAstNode) {
+        StringWriter stringWriter = new StringWriter()
+        iAstNode.visit(new AstNodeToScriptVisitor(stringWriter))
+        return stringWriter.getBuffer().toString()
+    }
+
+    final Boolean methodArgumentsPresent(Object iArgs) {
+        if (iArgs != null) {
+            if (iArgs instanceof Collection) {
+                return iArgs.size() > 0
+            } else if (iArgs instanceof Object[]) {
+                return iArgs.length > 0
+            } else {
+                return false
+            }
+        } else {
+            return false
+        }
+    }
+
+    void report(String msg) {
+        log.info("Carburator: " + Thread.currentThread().getName() + ": " + msg)
     }
 
 }

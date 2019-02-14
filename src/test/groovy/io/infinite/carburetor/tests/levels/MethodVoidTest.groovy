@@ -25,7 +25,7 @@ new Foo().test()
     }
 
     String expectedCode = """
-testEngine.methodExecutionOpen(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(8, 11, 5, 6, 'Foo', 'test'), ['bar': bar ])
+testEngine.methodStart(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(8, 11, 5, 6, 'Foo', 'test'), ['bar': bar ])
 try {
     bar 
 } 

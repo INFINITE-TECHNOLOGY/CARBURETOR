@@ -27,7 +27,7 @@ new Foo().test()
     }
 
     String expectedCode = """
-testEngine.methodExecutionOpen(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(10, 13, 5, 6, 'Foo', 'test'), ['bar': bar ])
+testEngine.methodStart(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(10, 13, 5, 6, 'Foo', 'test'), ['bar': bar ])
 try {
     testEngine.executeMethod({ java.lang.Object itVariableReplacement0 ->
         testEngine.preprocessControlStatement(new io.infinite.supplies.ast.metadata.MetaDataStatement('ReturnStatement', 12, 12, 9, 19, 'test', 'Foo'))
@@ -41,6 +41,5 @@ catch (java.lang.Exception automaticException) {
 finally { 
     testEngine.executionClose()} 
 """
-
 
 }

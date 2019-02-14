@@ -34,7 +34,7 @@ class TestEngine extends CarburetorEngine {
     }
 
     @Override
-    void methodExecutionOpen(MetaDataMethodNode metaDataMethodNode, Map<String, Object> methodArgumentMap) {
+    void methodStart(MetaDataMethodNode metaDataMethodNode, Map<String, Object> methodArgumentMap) {
 
     }
 

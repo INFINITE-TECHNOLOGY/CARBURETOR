@@ -275,7 +275,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             }
         }
         Statement firstStatement = checkSuperConstructorCall(iMethodNode)
-        Statement methodExecutionOpen = createMethodLogStatement("methodExecutionOpen", iMethodNode, argumentMapEntryExpressionList)
+        Statement methodExecutionOpen = createMethodLogStatement("methodStart", iMethodNode, argumentMapEntryExpressionList)
         Statement methodException = createMethodLogStatement("methodException", iMethodNode, argumentMapEntryExpressionList, GeneralUtils.varX("automaticException"))
         if (carburetorLevel.value() >= CarburetorLevel.STATEMENT.value()) {
             iMethodNode.getCode().visit(new CarburetorVisitor(this, carburetorLevel))//<<<<<<<<<<<<<<VISIT<<<<<

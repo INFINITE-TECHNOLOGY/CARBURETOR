@@ -48,7 +48,7 @@ abstract class CarburetorEngine {
 
     abstract void statementExecutionOpen(MetaDataStatement metaDataStatement)
 
-    abstract void methodExecutionOpen(
+    abstract void methodStart(
             MetaDataMethodNode metaDataMethodNode,
             Map<String, Object> methodArgumentMap
     )

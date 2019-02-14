@@ -27,8 +27,6 @@ new Foo().test()
     }
 
     String expectedCode = """
-io.infinite.carburetor.TestEngine testEngine = io.infinite.carburetor.TestEngine.getInstance()
-Foo automaticThis = this 
 testEngine.methodExecutionOpen(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(10, 13, 5, 6, 'Foo', 'test'), ['bar': bar ])
 try {
     testEngine.statementExecutionOpen(new io.infinite.supplies.ast.metadata.MetaDataStatement('IfStatement', 12, 12, 9, 21, 'test', 'Foo'))

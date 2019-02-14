@@ -25,8 +25,6 @@ new Foo().test()
     }
 
     String expectedCode = """
-io.infinite.carburetor.TestEngine testEngine = io.infinite.carburetor.TestEngine.getInstance()
-Foo automaticThis = this 
 try {
     bar 
 } 

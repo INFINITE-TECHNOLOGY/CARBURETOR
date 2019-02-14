@@ -7,7 +7,7 @@ import io.infinite.supplies.ast.metadata.MetaDataMethodNode
 import io.infinite.supplies.ast.metadata.MetaDataStatement
 
 @CompileStatic
-class TestEngine extends CarburetorEngine{
+class TestEngine extends CarburetorEngine {
 
     static TestEngine getInstance() {
         return new TestEngine()

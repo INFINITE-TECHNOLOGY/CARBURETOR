@@ -25,13 +25,11 @@ new Foo().test()
     }
 
     String expectedCode = """
-io.infinite.carburetor.TestEngine testEngine = io.infinite.carburetor.TestEngine.getInstance()
-Foo automaticThis = this 
 testEngine.methodExecutionOpen(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(8, 11, 5, 6, 'Foo', 'test'), ['bar': bar ])
 try {
     testEngine.executeMethod({ java.lang.Object itVariableReplacement0 ->
         bar 
-    }, automaticThis)
+    }, thisInstance)
 } 
 catch (java.lang.Exception automaticException) {
     testEngine.methodExecutionException(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(8, 11, 5, 6, 'Foo', 'test'), ['bar': bar ])

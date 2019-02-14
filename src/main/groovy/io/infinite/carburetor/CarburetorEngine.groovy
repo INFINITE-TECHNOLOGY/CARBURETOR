@@ -8,10 +8,13 @@ import io.infinite.supplies.ast.metadata.MetaDataMethodNode
 import io.infinite.supplies.ast.metadata.MetaDataStatement
 import io.infinite.supplies.ast.other.ASTUtils
 
-import java.lang.reflect.Field
-
 @Slf4j
 @CompileStatic
+/**
+ * Requirements to Carburetor engines:
+ * 1) Should support usage in static context (engine var is declared as static)
+ * 2) Should be thread safe
+ */
 abstract class CarburetorEngine {
 
     abstract void expressionExecutionOpen(MetaDataExpression metaDataExpression)

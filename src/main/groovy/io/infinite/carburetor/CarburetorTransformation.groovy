@@ -9,6 +9,7 @@ import io.infinite.supplies.ast.exceptions.CompileException
 import io.infinite.supplies.ast.metadata.MetaDataExpression
 import io.infinite.supplies.ast.metadata.MetaDataMethodNode
 import io.infinite.supplies.ast.metadata.MetaDataStatement
+import jdk.internal.org.objectweb.asm.Opcodes
 import org.codehaus.groovy.ast.*
 import org.codehaus.groovy.ast.builder.AstBuilder
 import org.codehaus.groovy.ast.expr.*
@@ -41,6 +42,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     static {
         ASTNode.getMetaClass().origCodeString = null
         ASTNode.getMetaClass().transformedBy = null
+        ClassNode.getMetaClass().mandatoryDeclarationsDone = null
     }
 
     void report(String msg) {
@@ -67,13 +69,51 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     abstract Boolean excludeMethodNode(MethodNode methodNode)
 
     void visitClassNode(ClassNode classNode, AnnotationNode classAnnotationNode) {
-        classDeclarations(classNode)
         classNode.methods.each {
             visitMethod(it, it.getAnnotations(classAnnotationNode.getClassNode())[0] ?: classAnnotationNode)
         }
     }
 
-    abstract void classDeclarations(ClassNode classNode)
+    abstract void optionalDeclarations(ClassNode classNode)
+
+    void mandatoryClassDeclarations(ClassNode classNode) {
+        ClassNode classNodeType = classNode.getPlainNodeReference() //walkaround A transform used a generics containing ClassNode NamedArgumentConstructorClass for the field thisInstance directly....
+        if (classNode.mandatoryDeclarationsDone != true) {
+            classNode.addField(getThisInstanceVarName(),
+                    Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PRIVATE,
+                    classNodeType,
+                    GeneralUtils.varX("this", classNodeType)
+            )
+            classNode.addField(getThisClassVarName(),
+                    Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC,
+                    ClassHelper.make(Class.class).getPlainNodeReference(), //same walkaround as above
+                    GeneralUtils.varX("this", classNodeType)
+            )
+            classNode.addField(getEngineVarName(),
+                    Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC,
+                    ClassHelper.make(CarburetorEngine.class),
+                    GeneralUtils.callX(ClassHelper.make(getEngineFactoryClass()), getEngineFactoryMethodName(), getEngineInitArgs())
+            )
+            classNode.mandatoryDeclarationsDone = true
+        }
+        optionalDeclarations(classNode)
+    }
+    
+    String getThisInstanceVarName() {
+        "thisInstance"
+    }
+
+    String getThisClassVarName() {
+        "thisClass"
+    }
+    
+    abstract Class getEngineFactoryClass()
+    
+    abstract Expression getEngineInitArgs()
+    
+    String getEngineFactoryMethodName() {
+        return "getInstance"
+    }
 
     synchronized void visit(ASTNode[] iAstNodeArray, SourceUnit iSourceUnit) {
         try {
@@ -99,6 +139,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         if (methodNode.isAbstract() || excludeMethodNode(methodNode)) {
             return
         }
+        mandatoryClassDeclarations(methodNode.getDeclaringClass())
         uniqueClosureParamCounter = 0
         this.annotatationNode = methodAnnotationNode
         this.methodNode = methodNode
@@ -187,7 +228,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                                 )
                         ),
                         closureExpression,
-                        GeneralUtils.varX("automaticThis")
+                        GeneralUtils.varX(getThisInstanceVarName())
                 )
         )
         methodCallExpression.copyNodeMetaData(expression)
@@ -214,8 +255,6 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
 
     abstract String getEngineVarName()
 
-    abstract Statement createEngineDeclaration()
-
     void transformMethod(MethodNode iMethodNode) {
         if (carburetorLevel.value() == CarburetorLevel.NONE.value()) {
             return
@@ -226,22 +265,17 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                 argumentMapEntryExpressionList.add(new MapEntryExpression(GeneralUtils.constX(parameter.getName()), GeneralUtils.varX(parameter.getName())))
             }
         }
-        Statement engineDeclarationStatement = createEngineDeclaration()
-        Statement automaticThisDeclaration = GeneralUtils.declS(
-                iMethodNode.isStatic() ? GeneralUtils.varX("automaticThis", ClassHelper.make(Class.class)) : GeneralUtils.varX("automaticThis", iMethodNode.getDeclaringClass()),
-                GeneralUtils.varX("this", iMethodNode.getDeclaringClass())
-        )
         Statement firstStatement = checkSuperConstructorCall(iMethodNode)
         Statement methodExecutionOpen = createMethodLogStatement("methodExecutionOpen", iMethodNode, argumentMapEntryExpressionList)
         Statement methodExecutionOpenException = createMethodLogStatement("methodExecutionException", iMethodNode, argumentMapEntryExpressionList)
         Statement exceptionStatement = new ExpressionStatement(GeneralUtils.callX(GeneralUtils.varX(getEngineVarName()), "exception", GeneralUtils.args(GeneralUtils.varX("automaticException"))))
         if (carburetorLevel.value() >= CarburetorLevel.STATEMENT.value()) {
             iMethodNode.getCode().visit(new CarburetorVisitor(this, carburetorLevel))//<<<<<<<<<<<<<<VISIT<<<<<
-            methodStatementLevelTransformation(iMethodNode, firstStatement, engineDeclarationStatement, automaticThisDeclaration, methodExecutionOpen, exceptionStatement, methodExecutionOpenException)
+            methodStatementLevelTransformation(iMethodNode, firstStatement, methodExecutionOpen, exceptionStatement, methodExecutionOpenException)
         } else if (carburetorLevel.value() == CarburetorLevel.METHOD.value()) {
-            methodStatementLevelTransformation(iMethodNode, firstStatement, engineDeclarationStatement, automaticThisDeclaration, methodExecutionOpen, exceptionStatement, methodExecutionOpenException)
+            methodStatementLevelTransformation(iMethodNode, firstStatement, methodExecutionOpen, exceptionStatement, methodExecutionOpenException)
         } else if (carburetorLevel.value() == CarburetorLevel.ERROR.value()) {
-            methodErrorLevelTransformation(iMethodNode, firstStatement, engineDeclarationStatement, automaticThisDeclaration, methodExecutionOpenException)
+            methodErrorLevelTransformation(iMethodNode, firstStatement, methodExecutionOpenException)
         } else {
             throw new CompileException(iMethodNode, "Unsupported Carburetor Level: " + carburetorLevel.toString())
         }
@@ -272,12 +306,10 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         )
     }
 
-    void methodStatementLevelTransformation(MethodNode iMethodNode, Statement firstStatement, Statement engineDeclarationStatement, Statement automaticThisDeclaration, ExpressionStatement methodExecutionOpen, Statement exceptionStatement, Statement methodExecutionOpenException) {
+    void methodStatementLevelTransformation(MethodNode iMethodNode, Statement firstStatement, ExpressionStatement methodExecutionOpen, Statement exceptionStatement, Statement methodExecutionOpenException) {
         iMethodNode.setCode(
                 GeneralUtils.block(
                         firstStatement,
-                        engineDeclarationStatement,
-                        automaticThisDeclaration,
                         methodExecutionOpen,
                         {
                             TryCatchStatement tryCatchStatement = new TryCatchStatement(
@@ -288,7 +320,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                                             return new ExpressionStatement(GeneralUtils.callX(
                                                     GeneralUtils.varX(getEngineVarName()),
                                                     "executeMethod",
-                                                    GeneralUtils.args(wrapStatementIntoClosure(iMethodNode.getCode()), GeneralUtils.varX("automaticThis"))
+                                                    GeneralUtils.args(wrapStatementIntoClosure(iMethodNode.getCode()), GeneralUtils.varX(getThisInstanceVarName()))
                                             ))
                                         }
                                     }.call() as Statement,
@@ -310,13 +342,11 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         )
     }
 
-    void methodErrorLevelTransformation(MethodNode iMethodNode, Statement firstStatement, Statement engineDeclarationStatement, Statement automaticThisDeclaration, Statement methodExecutionOpen) {
+    void methodErrorLevelTransformation(MethodNode iMethodNode, Statement firstStatement, Statement methodExecutionOpen) {
         Statement logException = new ExpressionStatement(GeneralUtils.callX(GeneralUtils.varX(getEngineVarName()), "exception", GeneralUtils.args(GeneralUtils.varX("automaticException"))))
         iMethodNode.setCode(
                 GeneralUtils.block(
                         firstStatement,
-                        engineDeclarationStatement,
-                        automaticThisDeclaration,
                         {
                             TryCatchStatement tryCatchStatement = new TryCatchStatement(iMethodNode.getCode(), EmptyStatement.INSTANCE)
                             tryCatchStatement.addCatch(

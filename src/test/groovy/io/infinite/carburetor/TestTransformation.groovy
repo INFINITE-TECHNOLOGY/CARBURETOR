@@ -2,12 +2,10 @@ package io.infinite.carburetor
 
 import groovy.transform.ToString
 import groovy.util.logging.Slf4j
-import io.infinite.carburetor.CarburetorTransformation
-import org.codehaus.groovy.ast.ClassHelper
 import org.codehaus.groovy.ast.ClassNode
 import org.codehaus.groovy.ast.MethodNode
-import org.codehaus.groovy.ast.stmt.Statement
-import org.codehaus.groovy.ast.tools.GeneralUtils
+import org.codehaus.groovy.ast.expr.Expression
+import org.codehaus.groovy.ast.expr.MethodCallExpression
 import org.codehaus.groovy.control.CompilePhase
 import org.codehaus.groovy.transform.GroovyASTTransformation
 
@@ -24,8 +22,18 @@ class TestTransformation extends CarburetorTransformation {
     }
 
     @Override
-    void classDeclarations(ClassNode classNode) {
+    void optionalDeclarations(ClassNode classNode) {
 
+    }
+
+    @Override
+    Class getEngineFactoryClass() {
+        return TestEngine.class
+    }
+
+    @Override
+    Expression getEngineInitArgs() {
+        MethodCallExpression.NO_ARGUMENTS
     }
 
     @Override
@@ -41,13 +49,5 @@ class TestTransformation extends CarburetorTransformation {
     @Override
     String getEngineVarName() {
         return "testEngine"
-    }
-
-    @Override
-    Statement createEngineDeclaration() {
-        return GeneralUtils.declS(
-                GeneralUtils.varX(getEngineVarName(), ClassHelper.make(TestEngine.class)),
-                GeneralUtils.callX(ClassHelper.make(TestEngine.class), "getInstance")
-        )
     }
 }

@@ -30,8 +30,7 @@ try {
     testEngine.expressionExecutionOpen(new io.infinite.supplies.ast.metadata.MetaDataExpression('DeclarationExpression', 'java.lang.Object foo ', 10, 10, 9, 16, 'test', 'Foo'))java.lang.Object foo testEngine.executionClose()
 } 
 catch (java.lang.Exception automaticException) {
-    testEngine.methodExecutionException(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(8, 11, 5, 6, 'Foo', 'test'), ['bar': bar ])
-    testEngine.exception(automaticException)
+    testEngine.methodException(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(8, 11, 5, 6, 'Foo', 'test'), ['bar': bar ], automaticException)
     throw automaticException 
 } 
 finally { 

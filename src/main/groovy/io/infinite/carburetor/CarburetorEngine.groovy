@@ -53,9 +53,10 @@ abstract class CarburetorEngine {
             Map<String, Object> methodArgumentMap
     )
 
-    abstract void methodExecutionException(
+    abstract void methodException(
             MetaDataMethodNode metaDataMethodNode,
-            Map<String, Object> methodArgumentMap
+            Map<String, Object> methodArgumentMap,
+            Exception exception
     )
 
     abstract void executionClose()
@@ -76,7 +77,5 @@ abstract class CarburetorEngine {
         handleMethodResult(methodResult)
         return methodResult
     }
-
-    abstract void exception(Exception exception)
 
 }

@@ -77,7 +77,8 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     abstract void optionalDeclarations(ClassNode classNode)
 
     void mandatoryClassDeclarations(ClassNode classNode) {
-        ClassNode classNodeType = classNode.getPlainNodeReference() //walkaround A transform used a generics containing ClassNode NamedArgumentConstructorClass for the field thisInstance directly....
+        ClassNode classNodeType = classNode.getPlainNodeReference()
+        //walkaround A transform used a generics containing ClassNode NamedArgumentConstructorClass for the field thisInstance directly....
         if (classNode.mandatoryDeclarationsDone != true) {
             classNode.addField(getThisInstanceVarName(),
                     Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PRIVATE,
@@ -106,7 +107,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             return getThisInstanceVarName()
         }
     }
-    
+
     String getThisInstanceVarName() {
         "thisInstance"
     }
@@ -114,11 +115,11 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     String getThisClassVarName() {
         "thisClass"
     }
-    
+
     abstract Class getEngineFactoryClass()
-    
+
     abstract Expression getEngineInitArgs()
-    
+
     String getEngineFactoryMethodName() {
         return "getInstance"
     }
@@ -275,46 +276,51 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         }
         Statement firstStatement = checkSuperConstructorCall(iMethodNode)
         Statement methodExecutionOpen = createMethodLogStatement("methodExecutionOpen", iMethodNode, argumentMapEntryExpressionList)
-        Statement methodExecutionOpenException = createMethodLogStatement("methodExecutionException", iMethodNode, argumentMapEntryExpressionList)
-        Statement exceptionStatement = new ExpressionStatement(GeneralUtils.callX(GeneralUtils.varX(getEngineVarName()), "exception", GeneralUtils.args(GeneralUtils.varX("automaticException"))))
+        Statement methodException = createMethodLogStatement("methodException", iMethodNode, argumentMapEntryExpressionList, GeneralUtils.varX("automaticException"))
         if (carburetorLevel.value() >= CarburetorLevel.STATEMENT.value()) {
             iMethodNode.getCode().visit(new CarburetorVisitor(this, carburetorLevel))//<<<<<<<<<<<<<<VISIT<<<<<
-            methodStatementLevelTransformation(iMethodNode, firstStatement, methodExecutionOpen, exceptionStatement, methodExecutionOpenException)
+            methodStatementLevelTransformation(iMethodNode, firstStatement, methodExecutionOpen, methodException)
         } else if (carburetorLevel.value() == CarburetorLevel.METHOD.value()) {
-            methodStatementLevelTransformation(iMethodNode, firstStatement, methodExecutionOpen, exceptionStatement, methodExecutionOpenException)
+            methodStatementLevelTransformation(iMethodNode, firstStatement, methodExecutionOpen, methodException)
         } else if (carburetorLevel.value() == CarburetorLevel.ERROR.value()) {
-            methodErrorLevelTransformation(iMethodNode, firstStatement, methodExecutionOpenException)
+            methodErrorLevelTransformation(iMethodNode, firstStatement, methodException)
         } else {
             throw new CompileException(iMethodNode, "Unsupported Carburetor Level: " + carburetorLevel.toString())
         }
     }
 
-    ExpressionStatement createMethodLogStatement(String methodLogName, MethodNode iMethodNode, ArrayList<MapEntryExpression> argumentMapEntryExpressionList) {
+    ExpressionStatement createMethodLogStatement(String methodLogName, MethodNode iMethodNode, ArrayList<MapEntryExpression> argumentMapEntryExpressionList, Expression... additionalArgs) {
+        def args = GeneralUtils.args(
+                GeneralUtils.ctorX(
+                        ClassHelper.make(MetaDataMethodNode.class),
+                        GeneralUtils.args(
+                                GeneralUtils.constX(iMethodNode.getLineNumber()),
+                                GeneralUtils.constX(iMethodNode.getLastLineNumber()),
+                                GeneralUtils.constX(iMethodNode.getColumnNumber()),
+                                GeneralUtils.constX(iMethodNode.getLastColumnNumber()),
+                                GeneralUtils.constX(iMethodNode.getDeclaringClass().getName()),
+                                GeneralUtils.constX(iMethodNode.getName())
+                        )
+                ),
+                new MapExpression(
+                        argumentMapEntryExpressionList
+                )
+        )
+        if (methodArgumentsPresent(additionalArgs)) {
+            additionalArgs.each {
+                args.addExpression(it)
+            }
+        }
         return new ExpressionStatement(
                 GeneralUtils.callX(
                         GeneralUtils.varX(getEngineVarName()),
                         methodLogName,
-                        GeneralUtils.args(
-                                GeneralUtils.ctorX(
-                                        ClassHelper.make(MetaDataMethodNode.class),
-                                        GeneralUtils.args(
-                                                GeneralUtils.constX(iMethodNode.getLineNumber()),
-                                                GeneralUtils.constX(iMethodNode.getLastLineNumber()),
-                                                GeneralUtils.constX(iMethodNode.getColumnNumber()),
-                                                GeneralUtils.constX(iMethodNode.getLastColumnNumber()),
-                                                GeneralUtils.constX(iMethodNode.getDeclaringClass().getName()),
-                                                GeneralUtils.constX(iMethodNode.getName())
-                                        )
-                                ),
-                                new MapExpression(
-                                        argumentMapEntryExpressionList
-                                )
-                        )
+                        args
                 )
         )
     }
 
-    void methodStatementLevelTransformation(MethodNode iMethodNode, Statement firstStatement, ExpressionStatement methodExecutionOpen, Statement exceptionStatement, Statement methodExecutionOpenException) {
+    void methodStatementLevelTransformation(MethodNode iMethodNode, Statement firstStatement, ExpressionStatement methodExecutionOpen, Statement methodExecutionOpenException) {
         iMethodNode.setCode(
                 GeneralUtils.block(
                         firstStatement,
@@ -339,7 +345,6 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                                             GeneralUtils.param(ClassHelper.make(Exception.class), "automaticException"),
                                             GeneralUtils.block(
                                                     methodExecutionOpenException,
-                                                    exceptionStatement,
                                                     createThrowStatement()
                                             )
                                     )
@@ -350,8 +355,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         )
     }
 
-    void methodErrorLevelTransformation(MethodNode iMethodNode, Statement firstStatement, Statement methodExecutionOpen) {
-        Statement logException = new ExpressionStatement(GeneralUtils.callX(GeneralUtils.varX(getEngineVarName()), "exception", GeneralUtils.args(GeneralUtils.varX("automaticException"))))
+    void methodErrorLevelTransformation(MethodNode iMethodNode, Statement firstStatement, Statement methodException) {
         iMethodNode.setCode(
                 GeneralUtils.block(
                         firstStatement,
@@ -361,9 +365,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                                     GeneralUtils.catchS(
                                             GeneralUtils.param(ClassHelper.make(Exception.class), "automaticException"),
                                             GeneralUtils.block(
-                                                    methodExecutionOpen,
-                                                    logException,
-                                                    new ExpressionStatement(GeneralUtils.callX(GeneralUtils.varX(getEngineVarName()), "executionClose")),
+                                                    methodException,
                                                     createThrowStatement()
                                             )
                                     )

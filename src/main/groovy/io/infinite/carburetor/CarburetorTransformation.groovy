@@ -119,7 +119,6 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     }
 
     void mandatoryClassDeclarations(ClassNode classNode) {
-        optionalDeclarations(classNode)
         ClassNode classNodeType = classNode.getPlainNodeReference()
         //walkaround A transform used a generics containing ClassNode NamedArgumentConstructorClass for the field thisInstance directly....
         if (classNode.mandatoryDeclarationsDone != true) {
@@ -148,6 +147,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                         )
                 )
             }
+            optionalDeclarations(classNode)
             classNode.mandatoryDeclarationsDone = true
         }
     }

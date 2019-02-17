@@ -9,6 +9,7 @@ import io.infinite.supplies.ast.exceptions.CompileException
 import io.infinite.supplies.ast.metadata.MetaDataExpression
 import io.infinite.supplies.ast.metadata.MetaDataMethodNode
 import io.infinite.supplies.ast.metadata.MetaDataStatement
+import io.infinite.supplies.ast.other.ASTUtils
 import jdk.internal.org.objectweb.asm.Opcodes
 import org.codehaus.groovy.ast.*
 import org.codehaus.groovy.ast.builder.AstBuilder
@@ -35,6 +36,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     MethodNode methodNode
     private static Integer uniqueClosureParamCounter = 0
     static String lastCode
+    ASTUtils astUtils = new ASTUtils()
 
     @Cache
     CarburetorConfig carburetorConfig = initCarburetorConfig()
@@ -121,21 +123,27 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         ClassNode classNodeType = classNode.getPlainNodeReference()
         //walkaround A transform used a generics containing ClassNode NamedArgumentConstructorClass for the field thisInstance directly....
         if (classNode.mandatoryDeclarationsDone != true) {
-            classNode.addField(getThisInstanceVarName(),
-                    Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PRIVATE,
-                    classNodeType,
-                    GeneralUtils.varX("this", classNodeType)
-            )
-            classNode.addField(getThisClassVarName(),
-                    Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC,
-                    ClassHelper.make(Class.class).getPlainNodeReference(), //same walkaround as above
-                    GeneralUtils.varX("this", classNodeType)
-            )
-            classNode.addField(getEngineVarName(),
-                    Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC,
-                    ClassHelper.make(CarburetorEngine.class),
-                    GeneralUtils.callX(ClassHelper.make(getEngineFactoryClass()), getEngineFactoryMethodName(), getEngineInitArgs())
-            )
+            if (classNode.getDeclaredField(getThisInstanceVarName()) == null) {
+                classNode.addField(getThisInstanceVarName(),
+                        Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PRIVATE,
+                        classNodeType,
+                        GeneralUtils.varX("this", classNodeType)
+                )
+            }
+            if (classNode.getDeclaredField(getThisClassVarName()) == null) {
+                classNode.addField(getThisClassVarName(),
+                        Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC,
+                        ClassHelper.make(Class.class).getPlainNodeReference(), //same walkaround as above
+                        GeneralUtils.varX("this", classNodeType)
+                )
+            }
+            if (classNode.getDeclaredField(getEngineVarName()) == null) {
+                classNode.addField(getEngineVarName(),
+                        Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC,
+                        ClassHelper.make(CarburetorEngine.class),
+                        GeneralUtils.callX(ClassHelper.make(getEngineFactoryClass()), getEngineFactoryMethodName(), getEngineInitArgs())
+                )
+            }
             classNode.mandatoryDeclarationsDone = true
         }
     }
@@ -248,7 +256,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             return
         }
         List<MapEntryExpression> argumentMapEntryExpressionList = new ArrayList<>()
-        if (methodArgumentsPresent(iMethodNode.getParameters())) {
+        if (astUtils.methodArgumentsPresent(iMethodNode.getParameters())) {
             for (parameter in iMethodNode.getParameters()) {
                 argumentMapEntryExpressionList.add(new MapEntryExpression(GeneralUtils.constX(parameter.getName()), GeneralUtils.varX(parameter.getName())))
             }
@@ -275,7 +283,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                         argumentMapEntryExpressionList
                 )
         )
-        if (methodArgumentsPresent(additionalArgs)) {
+        if (astUtils.methodArgumentsPresent(additionalArgs)) {
             additionalArgs.each {
                 args.addExpression(it)
             }
@@ -586,20 +594,6 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         StringWriter stringWriter = new StringWriter()
         iAstNode.visit(new AstNodeToScriptVisitor(stringWriter))
         return stringWriter.getBuffer().toString()
-    }
-
-    final Boolean methodArgumentsPresent(Object iArgs) {
-        if (iArgs != null) {
-            if (iArgs instanceof Collection) {
-                return iArgs.size() > 0
-            } else if (iArgs instanceof Object[]) {
-                return iArgs.length > 0
-            } else {
-                return false
-            }
-        } else {
-            return false
-        }
     }
 
     void report(String msg) {

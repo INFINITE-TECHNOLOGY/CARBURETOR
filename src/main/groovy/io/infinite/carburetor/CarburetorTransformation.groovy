@@ -141,7 +141,11 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                 classNode.addField(getEngineVarName(),
                         Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC,
                         ClassHelper.make(CarburetorEngine.class),
-                        GeneralUtils.callX(ClassHelper.make(getEngineFactoryClass()), getEngineFactoryMethodName(), getEngineInitArgs())
+                        GeneralUtils.callX(
+                                GeneralUtils.ctorX(ClassHelper.make(getEngineFactoryClass())),
+                                getEngineFactoryMethodName(),
+                                getEngineInitArgs()
+                        )
                 )
             }
             classNode.mandatoryDeclarationsDone = true

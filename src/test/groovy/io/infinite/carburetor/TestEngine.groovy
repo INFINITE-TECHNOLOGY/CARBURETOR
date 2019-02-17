@@ -9,7 +9,7 @@ import io.infinite.supplies.ast.metadata.MetaDataStatement
 @CompileStatic
 class TestEngine extends CarburetorEngine {
 
-    static TestEngine getInstance() {
+    TestEngine getInstance() {
         return new TestEngine()
     }
 

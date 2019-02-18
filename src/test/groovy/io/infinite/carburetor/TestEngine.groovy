@@ -5,11 +5,12 @@ import io.infinite.supplies.ast.metadata.MetaDataASTNode
 import io.infinite.supplies.ast.metadata.MetaDataExpression
 import io.infinite.supplies.ast.metadata.MetaDataMethodNode
 import io.infinite.supplies.ast.metadata.MetaDataStatement
+import org.slf4j.Logger
 
 @CompileStatic
 class TestEngine extends CarburetorEngine {
 
-    TestEngine getInstance() {
+    TestEngine getInstance(Logger logger) {
         return new TestEngine()
     }
 

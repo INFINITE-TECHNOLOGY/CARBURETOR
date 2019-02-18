@@ -44,15 +44,20 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     static {
         ASTNode.getMetaClass().origCodeString = null
         ASTNode.getMetaClass().transformedBy = null
-        ClassNode.getMetaClass().mandatoryDeclarationsDone = null
     }
 
     abstract String getEngineVarName()
+
     abstract Boolean excludeMethodNode(MethodNode methodNode)
+
     abstract void optionalDeclarations(ClassNode classNode)
+
     abstract Class getEngineFactoryClass()
+
     abstract Expression getEngineInitArgs()
+
     abstract void methodDeclarations(MethodNode methodNode)
+
     abstract void getAnnotationParameters()
 
     // MAIN ENTRY POINT \/\/\/\/\/\/\/\/
@@ -85,7 +90,6 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         if (methodNode.isAbstract() || excludeMethodNode(methodNode)) {
             return
         }
-        mandatoryClassDeclarations(methodNode.getDeclaringClass())
         uniqueClosureParamCounter = 0
         this.annotatationNode = methodAnnotationNode
         this.methodNode = methodNode
@@ -99,6 +103,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             if (codeString(methodNode.getCode()).contains(getEngineVarName())) {
                 throw new CompileException(methodNode, "Duplicate transformation")
             }
+            mandatoryClassDeclarations(methodNode.getDeclaringClass())
             methodDeclarations(methodNode)
             String methodName = methodNode.getName()
             String className = methodNode.getDeclaringClass().getNameWithoutPackage()
@@ -119,36 +124,33 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     }
 
     void mandatoryClassDeclarations(ClassNode classNode) {
+        optionalDeclarations(classNode)
         ClassNode classNodeType = classNode.getPlainNodeReference()
         //walkaround A transform used a generics containing ClassNode NamedArgumentConstructorClass for the field thisInstance directly....
-        if (classNode.mandatoryDeclarationsDone != true) {
-            if (classNode.getDeclaredField(getThisInstanceVarName()) == null) {
-                classNode.addField(getThisInstanceVarName(),
-                        Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PUBLIC,//ACC_PUBLIC to workaround MissingPropertyException SpringBootApp$$EnhancerBySpringCGLIB$$<..>
-                        classNodeType,
-                        GeneralUtils.varX("this", classNodeType)
-                )
-            }
-            if (classNode.getDeclaredField(getThisClassVarName()) == null) {
-                classNode.addField(getThisClassVarName(),
-                        Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,//ACC_PUBLIC to workaround MissingPropertyException SpringBootApp$$EnhancerBySpringCGLIB$$<..>
-                        ClassHelper.make(Class.class).getPlainNodeReference(), //same walkaround as above
-                        GeneralUtils.varX("this", classNodeType)
-                )
-            }
-            if (classNode.getDeclaredField(getEngineVarName()) == null) {
-                classNode.addField(getEngineVarName(),
-                        Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,//ACC_PUBLIC to workaround MissingPropertyException SpringBootApp$$EnhancerBySpringCGLIB$$<..>
-                        ClassHelper.make(CarburetorEngine.class),
-                        GeneralUtils.callX(
-                                GeneralUtils.ctorX(ClassHelper.make(getEngineFactoryClass())),
-                                getEngineFactoryMethodName(),
-                                getEngineInitArgs()
-                        )
-                )
-            }
-            optionalDeclarations(classNode)
-            classNode.mandatoryDeclarationsDone = true
+        if (classNode.getDeclaredField(getThisInstanceVarName()) == null) {
+            classNode.addField(getThisInstanceVarName(),
+                    Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PUBLIC,//ACC_PUBLIC to workaround MissingPropertyException SpringBootApp$$EnhancerBySpringCGLIB$$<..>
+                    classNodeType,
+                    GeneralUtils.varX("this", classNodeType)
+            )
+        }
+        if (classNode.getDeclaredField(getThisClassVarName()) == null) {
+            classNode.addField(getThisClassVarName(),
+                    Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,//ACC_PUBLIC to workaround MissingPropertyException SpringBootApp$$EnhancerBySpringCGLIB$$<..>
+                    ClassHelper.make(Class.class).getPlainNodeReference(), //same walkaround as above
+                    GeneralUtils.varX("this", classNodeType)
+            )
+        }
+        if (classNode.getDeclaredField(getEngineVarName()) == null) {
+            classNode.addField(getEngineVarName(),
+                    Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,//ACC_PUBLIC to workaround MissingPropertyException SpringBootApp$$EnhancerBySpringCGLIB$$<..>
+                    ClassHelper.make(CarburetorEngine.class),
+                    GeneralUtils.callX(
+                            GeneralUtils.ctorX(ClassHelper.make(getEngineFactoryClass())),
+                            getEngineFactoryMethodName(),
+                            getEngineInitArgs()
+                    )
+            )
         }
     }
 

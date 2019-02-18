@@ -124,21 +124,21 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         if (classNode.mandatoryDeclarationsDone != true) {
             if (classNode.getDeclaredField(getThisInstanceVarName()) == null) {
                 classNode.addField(getThisInstanceVarName(),
-                        Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PRIVATE,
+                        Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PUBLIC,//ACC_PUBLIC to workaround MissingPropertyException SpringBootApp$$EnhancerBySpringCGLIB$$<..>
                         classNodeType,
                         GeneralUtils.varX("this", classNodeType)
                 )
             }
             if (classNode.getDeclaredField(getThisClassVarName()) == null) {
                 classNode.addField(getThisClassVarName(),
-                        Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC,
+                        Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,//ACC_PUBLIC to workaround MissingPropertyException SpringBootApp$$EnhancerBySpringCGLIB$$<..>
                         ClassHelper.make(Class.class).getPlainNodeReference(), //same walkaround as above
                         GeneralUtils.varX("this", classNodeType)
                 )
             }
             if (classNode.getDeclaredField(getEngineVarName()) == null) {
                 classNode.addField(getEngineVarName(),
-                        Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC,
+                        Opcodes.ACC_FINAL | Opcodes.ACC_TRANSIENT | Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC,//ACC_PUBLIC to workaround MissingPropertyException SpringBootApp$$EnhancerBySpringCGLIB$$<..>
                         ClassHelper.make(CarburetorEngine.class),
                         GeneralUtils.callX(
                                 GeneralUtils.ctorX(ClassHelper.make(getEngineFactoryClass())),

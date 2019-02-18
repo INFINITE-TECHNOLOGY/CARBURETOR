@@ -1,6 +1,5 @@
 package io.infinite.carburetor.tests
 
-
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,11 +33,9 @@ import groovy.util.logging.Slf4j
 @SpringBootApplication
 @Slf4j
 class SpringBootApp implements CommandLineRunner {
-
-    @Autowired
-    private ApplicationContext context
-
+    
     void run(String... args) throws Exception {
+        thisInstance.bar()    
         runWithLogging()
     }
 
@@ -48,7 +45,7 @@ class SpringBootApp implements CommandLineRunner {
     }
     
     void bar() {
-        log.info("SpringBootAppTest OK")
+        log.info("SpringBootAppTest OK" + this.toString())
     }
     
     static void main(String[] args) {

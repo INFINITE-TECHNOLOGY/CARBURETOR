@@ -25,7 +25,7 @@ abstract class CarburetorEngine {
 
     ASTUtils astUtils = new ASTUtils()
 
-    final Object expressionEvaluation(
+    Object expressionEvaluation(
             MetaDataExpression metaDataExpression,
             Closure expressionClosure,
             Object automaticThis
@@ -69,7 +69,7 @@ abstract class CarburetorEngine {
 
     abstract void handleControlStatement(String controlStatementClassName)
 
-    final void preprocessControlStatement(MetaDataStatement metaDataStatement) {
+    void preprocessControlStatement(MetaDataStatement metaDataStatement) {
         statementStart(metaDataStatement)
         statementEnd(metaDataStatement)
         handleControlStatement(metaDataStatement.getStatementClassName())
@@ -77,7 +77,7 @@ abstract class CarburetorEngine {
 
     abstract void handleMethodResult(Object methodResult)
 
-    final Object executeMethod(Closure iMethodClosure, Object iAutomaticThis) {
+    Object executeMethod(Closure iMethodClosure, Object iAutomaticThis) {
         astUtils.ensureClosureEquivalency(iMethodClosure, iAutomaticThis)
         Object methodResult = iMethodClosure.call()
         handleMethodResult(methodResult)

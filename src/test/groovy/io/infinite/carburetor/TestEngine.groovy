@@ -30,7 +30,7 @@ class TestEngine extends CarburetorEngine {
 
     @Override
     Exception handleException(Exception exception, MetaDataASTNode metaDataASTNode) {
-        return new CarburetorRuntimeException(metaDataASTNode, exception)
+        return exception
     }
 
     @Override

@@ -114,6 +114,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             sourceUnit.AST.classes.each {
                 new VariableScopeVisitor(sourceUnit, true).visitClass(it)
             }
+            //new VariableScopeVisitor(sourceUnit, true).visitClass(methodNode.declaringClass)
             lastCode = codeString(methodNode.getCode())
             log.debug(lastCode)
             methodNode.transformedBy = this
@@ -482,6 +483,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         listOfExpressionsExpression.copyNodeMetaData(declarationExpression)
         listOfExpressionsExpression.setSourcePosition(declarationExpression)
         listOfExpressionsExpression.transformedBy = this
+        listOfExpressionsExpression.origCodeString = declarationExpression.origCodeString
         return listOfExpressionsExpression
     }
 
@@ -510,9 +512,9 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                 expression instanceof ArgumentListExpression ||
                 (expression instanceof ConstructorCallExpression && expression.isSpecialCall()) ||
                 (expression instanceof VariableExpression && expression.isSuperExpression()) ||
-                (expression.transformedBy == this)
-        ) {
-            expression?.transformedBy == true
+                expression.transformedBy == this ||
+                (expression.origCodeString == null || expression.origCodeString == "")
+                ) {
             return expression
         } else if (expression.getClass() == DeclarationExpression.class) {
             return transformDeclarationExpression(expression as DeclarationExpression, sourceNodeName)
@@ -569,6 +571,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         }
         transformedExpression.transformedBy = this
         transformedExpression.copyNodeMetaData(expression)
+        transformedExpression.origCodeString = expression.origCodeString
         transformedExpression.setSourcePosition(expression)
         return wrapExpressionIntoMethodCallExpression(transformedExpression, sourceNodeName)
     }
@@ -596,10 +599,16 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         return resultingStatements.first() as Statement
     }
 
-    String codeString(ASTNode iAstNode) {
-        StringWriter stringWriter = new StringWriter()
-        iAstNode.visit(new AstNodeToScriptVisitor(stringWriter))
-        return stringWriter.getBuffer().toString()
+    String codeString(ASTNode astNode) {
+        if (astNode.origCodeString != null && astNode.origCodeString != "") {
+            return astNode.origCodeString
+        } else {
+            String codeString = astUtils.codeString(astNode)
+            if (codeString == null || codeString == "") {
+                throw new CompileException(astNode, "Null code string")
+            }
+            return codeString
+        }
     }
 
     void report(String msg) {

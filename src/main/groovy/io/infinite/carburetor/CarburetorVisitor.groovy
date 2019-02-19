@@ -1,6 +1,7 @@
 package io.infinite.carburetor
 
 import groovy.transform.ToString
+import org.codehaus.groovy.ast.ASTNode
 import org.codehaus.groovy.ast.CodeVisitorSupport
 import org.codehaus.groovy.ast.VariableScope
 import org.codehaus.groovy.ast.expr.*
@@ -113,7 +114,6 @@ class CarburetorVisitor extends CodeVisitorSupport {
 
     @Override
     protected void visitEmptyStatement(EmptyStatement iEmptyStatement) {
-        iEmptyStatement.origCodeString = carburetorTransformation.codeString(iEmptyStatement)
         super.visitEmptyStatement(iEmptyStatement)
 
     }
@@ -397,5 +397,6 @@ class CarburetorVisitor extends CodeVisitorSupport {
         super.visitClosureListExpression(iClosureListExpression)
         transformExpressionList(iClosureListExpression.getExpressions(), iClosureListExpression.getClass().getSimpleName() + ":expressions")
     }
+
 
 }

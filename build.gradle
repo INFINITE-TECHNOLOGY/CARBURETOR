@@ -10,6 +10,7 @@ plugins {
     id "com.jfrog.artifactory" version "4.8.1"
     id "idea"
     id "jacoco"
+    id "enterprise.groovy.plugin" version "1.0.RC4"
 }
 sourceCompatibility = 1.7
 group = "io.infinite"
@@ -20,9 +21,6 @@ wrapper {
 }
 repositories {
     jcenter()
-    maven {
-        url "https://oss.jfrog.org/artifactory/oss-snapshot-local"
-    }
 }
 sourceSets {
     main.groovy.srcDirs = ["src/main/groovy"]
@@ -33,8 +31,8 @@ dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.5.4'
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8'
-    compile "io.infinite:supplies:1.0.1-20190217.114459-36"
-    testCompile "io.infinite:bobbin:2.0.0-20190212.114312-48"
+    compile "io.infinite:supplies:1.0.1"
+    testCompile "io.infinite:bobbin:2.0.0"
     testCompile "junit:junit:4.12"
     testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.1.3.RELEASE'
 }

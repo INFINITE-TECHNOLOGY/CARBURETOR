@@ -1,13 +1,13 @@
 package io.infinite.carburetor
 
-import groovy.transform.CompileStatic
+import groovy.transform.CompileDynamic
 import io.infinite.supplies.ast.metadata.MetaDataASTNode
 import io.infinite.supplies.ast.metadata.MetaDataExpression
 import io.infinite.supplies.ast.metadata.MetaDataMethodNode
 import io.infinite.supplies.ast.metadata.MetaDataStatement
 import org.slf4j.Logger
 
-@CompileStatic
+@CompileDynamic
 class TestEngine extends CarburetorEngine {
 
     TestEngine getInstance(Logger logger) {
@@ -25,8 +25,8 @@ class TestEngine extends CarburetorEngine {
     }
 
     @Override
-    def handleExpressionResult(Object expressionEvaluationResult) {
-        return null
+    Object handleExpressionResult(Object expressionEvaluationResult) {
+
     }
 
     @Override

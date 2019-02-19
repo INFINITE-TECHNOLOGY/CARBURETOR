@@ -1,8 +1,5 @@
 package io.infinite.carburetor
 
-import groovy.transform.CompileStatic
-
-@CompileStatic
 enum CarburetorLevel {
 
     EXPRESSION(400),

@@ -1,10 +1,8 @@
 package io.infinite.carburetor
 
-import groovy.transform.CompileStatic
 import io.infinite.supplies.ast.exceptions.RuntimeException
 import io.infinite.supplies.ast.metadata.MetaDataASTNode
 
-@CompileStatic
 class CarburetorRuntimeException extends RuntimeException {
 
 

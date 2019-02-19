@@ -1,10 +1,10 @@
 package io.infinite.carburetor
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import groovy.inspect.swingui.AstNodeToScriptVisitor
+import groovy.transform.CompileDynamic
 import groovy.transform.ToString
 import groovy.util.logging.Slf4j
-import io.infinite.supplies.ast.cache.Cache
+import io.infinite.supplies.ast.cache.CacheFieldInit
 import io.infinite.supplies.ast.exceptions.CompileException
 import io.infinite.supplies.ast.metadata.MetaDataExpression
 import io.infinite.supplies.ast.metadata.MetaDataMethodNode
@@ -29,6 +29,7 @@ import org.slf4j.MDC
         phase = CompilePhase.SEMANTIC_ANALYSIS
 )
 @Slf4j
+@CompileDynamic
 abstract class CarburetorTransformation extends AbstractASTTransformation {
 
     AnnotationNode annotatationNode
@@ -39,7 +40,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     ASTUtils astUtils = new ASTUtils()
     static private final Object compilationLock = new Object()
 
-    @Cache
+    @CacheFieldInit
     CarburetorConfig carburetorConfig = initCarburetorConfig()
 
     static {
@@ -215,7 +216,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         return closureExpression
     }
 
-    MethodCallExpression wrapExpressionIntoMethodCallExpression(Expression expression, sourceNodeName) {
+    MethodCallExpression wrapExpressionIntoMethodCallExpression(Expression expression, String sourceNodeName) {
         ClosureExpression closureExpression = wrapStatementIntoClosure(GeneralUtils.returnS(expression))
         closureExpression.setVariableScope(new VariableScope())
         MethodCallExpression methodCallExpression = GeneralUtils.callX(

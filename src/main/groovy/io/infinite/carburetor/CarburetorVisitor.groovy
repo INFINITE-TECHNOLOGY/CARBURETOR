@@ -1,5 +1,6 @@
 package io.infinite.carburetor
 
+import groovy.transform.CompileDynamic
 import groovy.transform.ToString
 import org.codehaus.groovy.ast.ASTNode
 import org.codehaus.groovy.ast.CodeVisitorSupport
@@ -9,6 +10,7 @@ import org.codehaus.groovy.ast.stmt.*
 import org.codehaus.groovy.ast.tools.GeneralUtils
 
 @ToString(includeNames = true, includeFields = true)
+@CompileDynamic
 class CarburetorVisitor extends CodeVisitorSupport {
 
     CarburetorTransformation carburetorTransformation

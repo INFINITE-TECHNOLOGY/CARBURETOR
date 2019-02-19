@@ -1,6 +1,5 @@
 package io.infinite.carburetor
 
-import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import io.infinite.supplies.ast.metadata.MetaDataASTNode
 import io.infinite.supplies.ast.metadata.MetaDataExpression
@@ -9,7 +8,6 @@ import io.infinite.supplies.ast.metadata.MetaDataStatement
 import io.infinite.supplies.ast.other.ASTUtils
 
 @Slf4j
-@CompileStatic
 /**
  * Requirements to Carburetor engines:
  * 1) Should support usage in static context (engine var is declared as static)
@@ -21,7 +19,7 @@ abstract class CarburetorEngine {
 
     abstract void expressionEnd(MetaDataExpression metaDataExpression)
 
-    abstract handleExpressionResult(Object expressionEvaluationResult)
+    abstract Object handleExpressionResult(Object expressionEvaluationResult)
 
     ASTUtils astUtils = new ASTUtils()
 

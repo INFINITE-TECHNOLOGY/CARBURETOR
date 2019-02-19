@@ -540,7 +540,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         } else if (expression.getClass() == PropertyExpression.class) {
             if (!(expression.getObjectExpression() instanceof ClassExpression && expression.getProperty() instanceof ConstantExpression && expression.getProperty().getValue().toString() == "this")) {
                 transformedExpression = new PropertyExpression(transformExpression(expression.getObjectExpression() as Expression, "PropertyExpression:objectExpression"),
-                        transformExpression(expression.getProperty() as Expression, "PropertyExpression:property"))
+                        transformExpression(expression.getProperty() as Expression, "PropertyExpression:property"), true)
             }
         } else if (expression.getClass() == RangeExpression.class) {
             transformedExpression = new RangeExpression(transformExpression(expression.getFrom() as Expression, "RangeExpression:from"),

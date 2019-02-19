@@ -37,6 +37,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     private static Integer uniqueClosureParamCounter = 0
     static String lastCode
     ASTUtils astUtils = new ASTUtils()
+    static private final Object compilationLock = new Object()
 
     @Cache
     CarburetorConfig carburetorConfig = initCarburetorConfig()
@@ -61,21 +62,23 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
     abstract void getAnnotationParameters()
 
     // MAIN ENTRY POINT \/\/\/\/\/\/\/\/
-    synchronized void visit(ASTNode[] iAstNodeArray, SourceUnit iSourceUnit) {
-        try {
-            init(iAstNodeArray, iSourceUnit)
-            if (iAstNodeArray[1] instanceof MethodNode) {
-                AnnotationNode methodAnnotationNode = iAstNodeArray[0] as AnnotationNode
-                visitMethod(iAstNodeArray[1] as MethodNode, methodAnnotationNode)
-            } else if (iAstNodeArray[1] instanceof ClassNode) {
-                AnnotationNode classAnnotationNode = iAstNodeArray[0] as AnnotationNode
-                visitClassNode(iAstNodeArray[1] as ClassNode, classAnnotationNode)
-            } else {
-                throw new CompileException(iAstNodeArray[1], "Unsupported Annotated Node; Only [Class, Method, Constructor] are supported.")
+    void visit(ASTNode[] iAstNodeArray, SourceUnit iSourceUnit) {
+        synchronized (compilationLock) {
+            try {
+                init(iAstNodeArray, iSourceUnit)
+                if (iAstNodeArray[1] instanceof MethodNode) {
+                    AnnotationNode methodAnnotationNode = iAstNodeArray[0] as AnnotationNode
+                    visitMethod(iAstNodeArray[1] as MethodNode, methodAnnotationNode)
+                } else if (iAstNodeArray[1] instanceof ClassNode) {
+                    AnnotationNode classAnnotationNode = iAstNodeArray[0] as AnnotationNode
+                    visitClassNode(iAstNodeArray[1] as ClassNode, classAnnotationNode)
+                } else {
+                    throw new CompileException(iAstNodeArray[1], "Unsupported Annotated Node; Only [Class, Method, Constructor] are supported.")
+                }
+            } catch (Exception exception) {
+                log.error(exception.getMessage(), exception)
+                throw new CompileException(iAstNodeArray[1], exception)
             }
-        } catch (Exception exception) {
-            log.error(exception.getMessage(), exception)
-            throw new CompileException(iAstNodeArray[1], exception)
         }
     }
     // MAIN ENTRY POINT /\/\/\/\/\/\/\/\

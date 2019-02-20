@@ -6,7 +6,7 @@ class CompilationConstructorTest extends AbstractTest {
 
     @Override
     void executeTests() {
-        def testInstance = getTestInstance("tests", "CompilationConstructorTesty")
+        def testInstance = getTestInstance("tests", "CompilationConstructorTest.groovy")
         testInstance.run()
     }
 

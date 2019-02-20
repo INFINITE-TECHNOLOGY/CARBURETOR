@@ -26,7 +26,7 @@ class TestEngine extends CarburetorEngine {
 
     @Override
     Object handleExpressionResult(Object expressionEvaluationResult) {
-
+        return expressionEvaluationResult
     }
 
     @Override

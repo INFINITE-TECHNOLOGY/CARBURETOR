@@ -88,6 +88,9 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         classNode.methods.each {
             visitMethod(it, it.getAnnotations(classAnnotationNode.getClassNode())[0] ?: classAnnotationNode)
         }
+        classNode.declaredConstructors.each {
+            visitMethod(it, it.getAnnotations(classAnnotationNode.getClassNode())[0] ?: classAnnotationNode)
+        }
     }
 
     void visitMethod(MethodNode methodNode, AnnotationNode methodAnnotationNode) {

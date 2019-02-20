@@ -14,7 +14,7 @@ plugins {
 }
 sourceCompatibility = 1.7
 group = "io.infinite"
-version = "2.0.6-SNAPSHOT"
+version = "2.0.7-SNAPSHOT"
 description = "Parameterized Groovy AST proxifying Transformer"
 wrapper {
     gradleVersion = "5.0"

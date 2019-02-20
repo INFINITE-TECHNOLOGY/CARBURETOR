@@ -1,7 +1,7 @@
 # Infinite Technology ♾ Carburetor 🌀
-Parameterized Groovy AST proxifying Transformer
+Parameterized Groovy AST method Transformer
 
-References:\
+References:
 
 - **[Carburetor documentation](https://github.com/INFINITE-TECHNOLOGY/CARBURETOR/wiki)**
 

@@ -4,7 +4,6 @@ package test.package.name
 import groovy.transform.CompileStatic
 import io.infinite.carburetor.TestCarburetor
 
-//@CompileStatic
 @TestCarburetor
 class Foo {
 
@@ -16,7 +15,6 @@ class Foo {
 
 }
 
-//@CompileStatic
 @TestCarburetor
 class Bar extends Foo {
 
@@ -32,4 +30,4 @@ class Bar extends Foo {
 
 }
 
-new Bar("OK")
+new Foo("OK")

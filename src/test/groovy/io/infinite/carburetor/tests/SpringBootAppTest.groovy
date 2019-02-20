@@ -3,10 +3,7 @@ package io.infinite.carburetor.tests
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.SpringApplication
 import org.springframework.context.ApplicationContext
-import org.springframework.context.support.GenericApplicationContext
-import org.springframework.core.io.DefaultResourceLoader
 import org.springframework.test.context.junit4.SpringRunner
 import org.springframework.util.ClassUtils
 
@@ -54,7 +51,6 @@ class SpringBootApp implements CommandLineRunner {
     
 }
 """)
-        //SpringApplication.run(appClass.getMetaClass().getTheClass(), [] as String)
         groovyClassLoader.loadClass("io.infinite.carburetor.tests.SpringBootApp")
         Thread.currentThread().setContextClassLoader(groovyClassLoader)
         appClass.main()

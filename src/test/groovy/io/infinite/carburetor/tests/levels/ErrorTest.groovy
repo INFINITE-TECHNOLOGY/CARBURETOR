@@ -29,7 +29,7 @@ try {
     bar 
 } 
 catch (java.lang.Exception automaticException) {
-    testEngine.methodException(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(8, 11, 5, 6, 'Foo', 'test'), ['bar': bar ], automaticException)
+    testEngine.methodException(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(8, 11, 5, 6, 'test', 'Foo'), ['bar': bar ], automaticException)
     throw automaticException 
 } 
 finally { 

@@ -319,8 +319,8 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
                         GeneralUtils.constX(methodNode.getLastLineNumber()),
                         GeneralUtils.constX(methodNode.getColumnNumber()),
                         GeneralUtils.constX(methodNode.getLastColumnNumber()),
-                        GeneralUtils.constX(methodNode.getDeclaringClass().getName()),
-                        GeneralUtils.constX(methodNode.getName())
+                        GeneralUtils.constX(methodNode.getName()),
+                        GeneralUtils.constX(methodNode.getDeclaringClass().getName())
                 )
         )
     }

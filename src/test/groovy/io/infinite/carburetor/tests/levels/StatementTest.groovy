@@ -27,7 +27,7 @@ new Foo().test()
     }
 
     String expectedCode = """
-testEngine.methodBegin(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(10, 13, 5, 6, 'Foo', 'test'), ['bar': bar ])
+testEngine.methodBegin(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(10, 13, 5, 6, 'test', 'Foo'), ['bar': bar ])
 try {
     testEngine.statementBegin(new io.infinite.supplies.ast.metadata.MetaDataStatement('IfStatement', 12, 12, 9, 21, 'test', 'Foo'))
     if (true) {
@@ -36,11 +36,11 @@ try {
     testEngine.statementEnd(new io.infinite.supplies.ast.metadata.MetaDataStatement('IfStatement', 12, 12, 9, 21, 'test', 'Foo'))
 } 
 catch (java.lang.Exception automaticException) {
-    testEngine.methodException(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(10, 13, 5, 6, 'Foo', 'test'), ['bar': bar ], automaticException)
+    testEngine.methodException(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(10, 13, 5, 6, 'test', 'Foo'), ['bar': bar ], automaticException)
     throw automaticException 
 } 
 finally { 
-    testEngine.methodEnd(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(10, 13, 5, 6, 'Foo', 'test'))} 
+    testEngine.methodEnd(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(10, 13, 5, 6, 'test', 'Foo'))} 
 """
 
 }

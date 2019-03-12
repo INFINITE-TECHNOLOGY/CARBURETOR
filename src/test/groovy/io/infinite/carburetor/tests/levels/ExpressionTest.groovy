@@ -30,7 +30,7 @@ new Foo().test()
     }
 
     String expectedCode = """
-testEngine.methodBegin(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(8, 11, 5, 6, 'Foo', 'test'), ['bar2': bar2 ])
+testEngine.methodBegin(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(8, 11, 5, 6, 'test', 'Foo'), ['bar2': bar2 ])
 try {
     testEngine.expressionBegin(new io.infinite.supplies.ast.metadata.MetaDataExpression('DeclarationExpression', 'java.lang.Object foo = this.bar()', 10, 10, 9, 24, 'test', 'Foo'))java.lang.Object foo = testEngine.expressionEvaluation(new io.infinite.supplies.ast.metadata.MetaDataExpression('MethodCallExpression', 'this.bar()', 10, 10, 19, 24, 'test', 'Foo'), { java.lang.Object itVariableReplacement1 ->
         return testEngine.expressionEvaluation(new io.infinite.supplies.ast.metadata.MetaDataExpression('VariableExpression', 'this ', -1, -1, -1, -1, 'test', 'Foo'), { java.lang.Object itVariableReplacement0 ->
@@ -39,11 +39,11 @@ try {
     }, thisInstance)testEngine.expressionEnd(new io.infinite.supplies.ast.metadata.MetaDataExpression('DeclarationExpression', 'java.lang.Object foo = this.bar()', 10, 10, 9, 24, 'test', 'Foo'))
 } 
 catch (java.lang.Exception automaticException) {
-    testEngine.methodException(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(8, 11, 5, 6, 'Foo', 'test'), ['bar2': bar2 ], automaticException)
+    testEngine.methodException(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(8, 11, 5, 6, 'test', 'Foo'), ['bar2': bar2 ], automaticException)
     throw automaticException 
 } 
 finally { 
-    testEngine.methodEnd(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(8, 11, 5, 6, 'Foo', 'test'))} 
+    testEngine.methodEnd(new io.infinite.supplies.ast.metadata.MetaDataMethodNode(8, 11, 5, 6, 'test', 'Foo'))} 
 """
 
 

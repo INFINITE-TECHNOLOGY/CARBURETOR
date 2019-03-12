@@ -15,7 +15,7 @@ class TestEngine extends CarburetorEngine {
     }
 
     @Override
-    void expressionStart(MetaDataExpression metaDataExpression) {
+    void expressionBegin(MetaDataExpression metaDataExpression) {
 
     }
 
@@ -25,7 +25,7 @@ class TestEngine extends CarburetorEngine {
     }
 
     @Override
-    Object handleExpressionResult(Object expressionEvaluationResult) {
+    Object handleExpressionResult(Object expressionEvaluationResult, MetaDataExpression metaDataExpression) {
         return expressionEvaluationResult
     }
 
@@ -35,7 +35,7 @@ class TestEngine extends CarburetorEngine {
     }
 
     @Override
-    void statementStart(MetaDataStatement metaDataStatement) {
+    void statementBegin(MetaDataStatement metaDataStatement) {
 
     }
 
@@ -45,7 +45,7 @@ class TestEngine extends CarburetorEngine {
     }
 
     @Override
-    void methodStart(MetaDataMethodNode metaDataMethodNode, Map<String, Object> methodArgumentMap) {
+    void methodBegin(MetaDataMethodNode metaDataMethodNode, Map<String, Object> methodArgumentMap) {
 
     }
 

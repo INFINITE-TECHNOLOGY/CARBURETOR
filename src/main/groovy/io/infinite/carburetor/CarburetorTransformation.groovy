@@ -276,7 +276,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
             }
         }
         Statement firstStatement = checkSuperConstructorCall(iMethodNode)
-        Statement methodExecutionOpen = createMethodLogStatement("methodStart", iMethodNode, argumentMapEntryExpressionList)
+        Statement methodExecutionOpen = createMethodLogStatement("methodBegin", iMethodNode, argumentMapEntryExpressionList)
         Statement methodException = createMethodLogStatement("methodException", iMethodNode, argumentMapEntryExpressionList, GeneralUtils.varX("automaticException"))
         if (carburetorLevel.value() >= CarburetorLevel.STATEMENT.value()) {
             iMethodNode.getCode().visit(new CarburetorVisitor(this, carburetorLevel))//<<<<<<<<<<<<<<VISIT<<<<<
@@ -434,7 +434,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         BlockStatement blockStatement = GeneralUtils.block(new VariableScope())
         blockStatement.addStatement(new ExpressionStatement(GeneralUtils.callX(
                 GeneralUtils.varX(getEngineVarName()),
-                "statementStart",
+                "statementBegin",
                 GeneralUtils.args(
                         metaDataStatement(statement)
                 )
@@ -472,7 +472,7 @@ abstract class CarburetorTransformation extends AbstractASTTransformation {
         ListOfExpressionsExpression listOfExpressionsExpression = new ListOfExpressionsExpression()
         MethodCallExpression expressionStart = GeneralUtils.callX(
                 GeneralUtils.varX(getEngineVarName()),
-                "expressionStart",
+                "expressionBegin",
                 GeneralUtils.args(
                         metaDataExpression(declarationExpression)
                 )

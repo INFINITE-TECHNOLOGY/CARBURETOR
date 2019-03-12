@@ -15,11 +15,11 @@ import io.infinite.supplies.ast.other.ASTUtils
  */
 abstract class CarburetorEngine {
 
-    abstract void expressionStart(MetaDataExpression metaDataExpression)
+    abstract void expressionBegin(MetaDataExpression metaDataExpression)
 
     abstract void expressionEnd(MetaDataExpression metaDataExpression)
 
-    abstract Object handleExpressionResult(Object expressionEvaluationResult)
+    abstract Object handleExpressionResult(Object expressionEvaluationResult, MetaDataExpression metaDataExpression)
 
     ASTUtils astUtils = new ASTUtils()
 
@@ -28,7 +28,7 @@ abstract class CarburetorEngine {
             Closure expressionClosure,
             Object automaticThis
     ) {
-        expressionStart(metaDataExpression)
+        expressionBegin(metaDataExpression)
         try {
             astUtils.ensureClosureEquivalency(expressionClosure, automaticThis)
             Object evaluationResult
@@ -37,7 +37,7 @@ abstract class CarburetorEngine {
             } catch (Exception exception) {
                 throw handleException(exception, metaDataExpression)
             }
-            handleExpressionResult(evaluationResult)
+            handleExpressionResult(evaluationResult, metaDataExpression)
             return evaluationResult
         } finally {
             expressionEnd(metaDataExpression)
@@ -46,11 +46,11 @@ abstract class CarburetorEngine {
 
     abstract Exception handleException(Exception exception, MetaDataASTNode metaDataASTNode)
 
-    abstract void statementStart(MetaDataStatement metaDataStatement)
+    abstract void statementBegin(MetaDataStatement metaDataStatement)
 
     abstract void statementEnd(MetaDataStatement metaDataStatement)
 
-    abstract void methodStart(
+    abstract void methodBegin(
             MetaDataMethodNode metaDataMethodNode,
             Map<String, Object> methodArgumentMap
     )
@@ -68,7 +68,7 @@ abstract class CarburetorEngine {
     abstract void handleControlStatement(String controlStatementClassName)
 
     void preprocessControlStatement(MetaDataStatement metaDataStatement) {
-        statementStart(metaDataStatement)
+        statementBegin(metaDataStatement)
         statementEnd(metaDataStatement)
         handleControlStatement(metaDataStatement.getStatementClassName())
     }

@@ -14,8 +14,8 @@ plugins {
 }
 sourceCompatibility = 1.7
 group = "io.infinite"
-version = "3.0.0-SNAPSHOT"
-description = "Parameterized Groovy AST proxifying Transformer"
+version = "4.0.0-SNAPSHOT"
+description = "Parameterized Groovy AST Method Transformer"
 wrapper {
     gradleVersion = "5.0"
 }
@@ -31,9 +31,9 @@ dependencies {
     compile 'org.codehaus.groovy:groovy-all:2.5.4'
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8'
-    compile "io.infinite:supplies:1.0.1"
-    testCompile "io.infinite:bobbin:2.0.0"
-    testCompile "junit:junit:4.12"
+    compile "io.infinite:supplies:1.1.0"
+    testCompile "io.infinite:bobbin:2.0.1"
+    testCompile "org.junit.jupiter:junit-jupiter-api:5.4.0"
     testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.1.3.RELEASE'
 }
 task sourceJar(type: Jar) {
@@ -41,10 +41,10 @@ task sourceJar(type: Jar) {
     classifier "sources"
 }
 ext {
-    theTitle = "Parameterized Groovy AST proxifying Transformer"
+    theTitle = "Parameterized Groovy AST Method Transformer"
     titleForDocumentation = archivesBaseName + " " + version
     packageTitle = group
-    description = "Parameterized Groovy AST proxifying Transformer"
+    description = "Parameterized Groovy AST Method Transformer"
 }
 publishing {
     publications {
@@ -73,7 +73,7 @@ bintray {
         userOrg = "infinite-technology"
         repo = "m2"
         name = "carburetor"
-        desc = "Parameterized Groovy AST proxifying Transformer"
+        desc = "Parameterized Groovy AST Method Transformer"
         issueTrackerUrl = "https://github.com/INFINITE-TECHNOLOGY/CARBURETOR/issues"
         vcsUrl = "https://github.com/INFINITE-TECHNOLOGY/CARBURETOR.git"
         websiteUrl = "https://i-t.io/Carburetor/"

@@ -10,7 +10,7 @@ References:
 
 |Attribute\Release type|Latest|Stable|
 |----------------------|------|------|
-|Version|4.0.0-SNAPSHOT|3.0.0|
+|Version|4.0.0-SNAPSHOT|3.0.1|
 |Branch|[master](https://github.com/INFINITE-TECHNOLOGY/CARBURETOR)|[CARBURETOR_3_0_X](https://github.com/INFINITE-TECHNOLOGY/CARBURETOR/tree/CARBURETOR_3_0_X)|
 |CI Build status|[![Build Status](https://travis-ci.com/INFINITE-TECHNOLOGY/CARBURETOR.svg?branch=master)](https://travis-ci.com/INFINITE-TECHNOLOGY/CARBURETOR)|[![Build Status](https://travis-ci.com/INFINITE-TECHNOLOGY/CARBURETOR.svg?branch=CARBURETOR_3_0_X)](https://travis-ci.com/INFINITE-TECHNOLOGY/CARBURETOR)|
 |Test coverage|[![codecov](https://codecov.io/gh/INFINITE-TECHNOLOGY/CARBURETOR/branch/master/graphs/badge.svg)](https://codecov.io/gh/INFINITE-TECHNOLOGY/CARBURETOR/branch/master/graphs)|[![codecov](https://codecov.io/gh/INFINITE-TECHNOLOGY/CARBURETOR/branch/CARBURETOR_3_0_X/graphs/badge.svg)](https://codecov.io/gh/INFINITE-TECHNOLOGY/CARBURETOR/branch/CARBURETOR_3_0_X/graphs)|

@@ -116,4 +116,6 @@ configurations {
     providedRuntime
     compile.exclude(group: 'ch.qos.logback')
     testCompile.exclude(group: 'ch.qos.logback')
+    compile.exclude(group: 'junit')
+    compile.exclude(group: 'org.junit.platform')
 }

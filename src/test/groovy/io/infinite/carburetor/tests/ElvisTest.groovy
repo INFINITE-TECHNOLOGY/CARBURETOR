@@ -1,7 +1,7 @@
 package io.infinite.carburetor.tests
 
 
-class ElvisTest extends GroovyTestCase {
+class ElvisTest extends CaburetorTestCase {
 
 
     void test() {

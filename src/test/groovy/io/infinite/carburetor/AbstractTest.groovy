@@ -1,9 +1,10 @@
 package io.infinite.carburetor
 
 import groovy.transform.Memoized
+import io.infinite.carburetor.tests.CaburetorTestCase
 import org.slf4j.MDC
 
-abstract class AbstractTest extends GroovyTestCase {
+abstract class AbstractTest extends CaburetorTestCase {
 
     GroovyClassLoader groovyClassLoader = new GroovyClassLoader()
 

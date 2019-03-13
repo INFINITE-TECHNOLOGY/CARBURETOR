@@ -2,10 +2,10 @@ package io.infinite.carburetor.tests
 
 import groovy.transform.Memoized
 import io.infinite.carburetor.TestEngine
-import org.junit.Test
+import org.testng.annotations.Test
 import org.slf4j.MDC
 
-class AllTests extends GroovyTestCase {
+class AllTests extends CaburetorTestCase {
 
     GroovyClassLoader groovyClassLoader = new GroovyClassLoader()
 

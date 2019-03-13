@@ -2,7 +2,7 @@ package io.infinite.carburetor.tests
 
 import io.infinite.carburetor.CarburetorTransformation
 
-class StaticMethodTest extends GroovyTestCase {
+class StaticMethodTest extends CaburetorTestCase {
 
     void test() {
         assertScript("""

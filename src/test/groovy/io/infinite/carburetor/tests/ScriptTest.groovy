@@ -1,7 +1,8 @@
 package io.infinite.carburetor.tests
 
-import org.junit.Test
+import org.testng.annotations.Test
 import org.springframework.util.ClassUtils
+import org.testng.annotations.Test
 
 class ScriptTest {
 

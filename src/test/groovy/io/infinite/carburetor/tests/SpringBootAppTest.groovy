@@ -1,11 +1,9 @@
 package io.infinite.carburetor.tests
 
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.springframework.test.context.junit4.SpringRunner
+import org.testng.annotations.Test
 import org.springframework.util.ClassUtils
 
-@RunWith(SpringRunner.class)
+//@RunWith(SpringRunner.class)
 class SpringBootAppTest {
 
     @Test

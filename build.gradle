@@ -30,7 +30,6 @@ dependencies {
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.7'
     compile 'org.codehaus.groovy:groovy-all:2.5.4'
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.8'
     compile "io.infinite:supplies:1.1.2"
     testCompile "io.infinite:bobbin:2.0.2"
     testCompile group: 'org.testng', name: 'testng', version: '6.14.3'

@@ -1,6 +1,6 @@
 package io.infinite.carburetor.tests
 
-class NamedArgumentTest extends GroovyTestCase {
+class NamedArgumentTest extends CaburetorTestCase {
 
 
     void test() {

@@ -1,7 +1,7 @@
 package io.infinite.carburetor.tests
 
 
-class MethodErrorTest extends GroovyTestCase {
+class MethodErrorTest extends CaburetorTestCase {
 
 
     void test() {

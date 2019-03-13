@@ -1,8 +1,9 @@
 package io.infinite.carburetor.tests.levels
 
 import io.infinite.carburetor.CarburetorTransformation
+import io.infinite.carburetor.tests.CaburetorTestCase
 
-class StatementTest extends GroovyTestCase {
+class StatementTest extends CaburetorTestCase {
 
     void test() {
         assertScript("""

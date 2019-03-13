@@ -1,7 +1,7 @@
 package io.infinite.carburetor.tests
 
 
-class MethodExpressionTest extends GroovyTestCase {
+class MethodExpressionTest extends CaburetorTestCase {
 
 
     void test() {

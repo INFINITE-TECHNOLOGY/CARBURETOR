@@ -3,7 +3,7 @@ package io.infinite.carburetor.tests
 import groovy.transform.Memoized
 import org.slf4j.MDC
 
-class VariableScopeTest extends GroovyTestCase {
+class VariableScopeTest extends CaburetorTestCase {
 
     GroovyClassLoader groovyClassLoader = new GroovyClassLoader()
 

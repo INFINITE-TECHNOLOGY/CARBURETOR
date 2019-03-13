@@ -10,7 +10,7 @@ plugins {
     id "com.jfrog.artifactory" version "4.8.1"
     id "idea"
     id "jacoco"
-    id "enterprise.groovy.plugin" version "1.0.RC4"
+    id "enterprise.groovy.plugin" version "1.0.1"
 }
 sourceCompatibility = 1.7
 group = "io.infinite"

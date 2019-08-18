@@ -15,7 +15,7 @@ plugins {
 
 sourceCompatibility = 1.7
 group = "io.i-t"
-version = "3.0.6"
+version = "3.0.7-SNAPSHOT"
 description = "Parameterized Groovy AST Method Transformer"
 
 wrapper {
